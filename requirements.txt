@@ -1,0 +1,4 @@
+Babel==2.14.0
+PyLaTeX==1.4.2
+python_dateutil==2.9.0.post0
+PyYAML==6.0.1

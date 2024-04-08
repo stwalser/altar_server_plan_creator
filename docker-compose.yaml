@@ -1,0 +1,7 @@
+services:
+  altar_server_plan_creator:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - ./config:/config
+      - ./output:/output
