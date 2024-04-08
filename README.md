@@ -1,0 +1,3 @@
+# Altar Server Plan Creator
+
+Documentation available soon...
