@@ -29,8 +29,7 @@ def add_servers_to_masses(masses: list, servers: list) -> None:
                         for server in inner_data["siblings"]:
                             mass.add_server(server)
                             sibling = find_dict_in_list(server, servers)
-                            move(sibling, not_assigned_servers,
-                                 assigned_servers)
+                            move(sibling, not_assigned_servers, assigned_servers)
 
                         n_servers_assigned += len(inner_data["siblings"]) + 1
 

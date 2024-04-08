@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 
 from dateutil import easter
-
-from holy_mass import HolyMass, Day
+from holy_mass import Day, HolyMass
 
 EASTER_SUNDAY = easter.easter(datetime.today().year)
 

@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import yaml
-
 from date_handler import create_mass_list
 from latex_handler import generate_pdf
 from server_handler import add_servers_to_masses
