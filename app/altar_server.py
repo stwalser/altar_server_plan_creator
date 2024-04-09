@@ -2,7 +2,7 @@ import queue
 import random
 from datetime import datetime
 
-from event_calendar import EventDay, Event
+from event_calendar import Event, EventDay
 
 
 class AltarServer:
@@ -62,12 +62,18 @@ class AltarServers:
             object_list = []
             if altar_server.has_siblings():
                 for sibling_name in altar_server.siblings:
-                    object_list.append(list(filter(lambda x: x.name == sibling_name, altar_servers))[0])
+                    object_list.append(
+                        list(filter(lambda x: x.name == sibling_name, altar_servers))[0],
+                    )
                 altar_server.siblings = object_list
 
         self.queue = queue.Queue()
         self.waiting = queue.Queue()
+        self.high_mass_priority = queue.Queue()
 
         random.shuffle(altar_servers)
         for altar_server in altar_servers:
             self.queue.put(altar_server)
+
+        for altar_server in list(filter(lambda x: x.always_high_mass, altar_servers)):
+            self.high_mass_priority.put(altar_server)
