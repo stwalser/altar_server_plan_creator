@@ -1,45 +1,55 @@
-import copy
-import random
+from queue import Empty
 
 from altar_server import AltarServer, AltarServers
+from holy_mass import Day, HolyMass
 
 
 def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
-    not_assigned_servers = copy.deepcopy(servers.all)
-    assigned_servers = []
-
     for day in calendar:
         for mass in day.masses:
             n_servers_assigned = 0
             while n_servers_assigned < mass.event.n_servers:
-                try:
-                    chosen_server: AltarServer = random.choice(not_assigned_servers)
-                except IndexError:
-                    not_assigned_servers = assigned_servers
-                    assigned_servers = []
-                    chosen_server = random.choice(not_assigned_servers)
+                chosen_server = get_server_from_queues(servers, day, mass)
 
                 if chosen_server.has_siblings():
                     if n_servers_assigned + len(chosen_server.siblings) + 1 <= mass.event.n_servers:
                         mass.add_server(chosen_server)
-                        move(chosen_server, not_assigned_servers, assigned_servers)
-                        for sibling in chosen_server.siblings:
-                            mass.add_server(sibling)
-                            move(sibling, not_assigned_servers, assigned_servers)
+                        servers.queue.put(chosen_server)
+                        n_servers_assigned += 1
 
-                        n_servers_assigned += len(chosen_server.siblings) + 1
+                        for sibling in chosen_server.siblings:
+                            if sibling.is_available(day.event_day, mass.event):
+                                mass.add_server(sibling)
+                                sibling.already_chosen_this_round = True
+                                n_servers_assigned += 1
                 else:
                     mass.add_server(chosen_server)
-                    move(chosen_server, not_assigned_servers, assigned_servers)
+                    servers.queue.put(chosen_server)
                     n_servers_assigned += 1
 
 
-def move(element, a: list, b: list) -> None:
-    a.remove(element)
-    b.append(element)
+def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> AltarServer:
+    class SameElementTwice(Exception):
+        pass
 
+    old_unsuitable = None
+    while True:
+        while True:
+            try:
+                chosen_server = servers.waiting.get_nowait()
+                if chosen_server == old_unsuitable:
+                    raise SameElementTwice
+            except (Empty, SameElementTwice):
+                chosen_server = servers.queue.get_nowait()
 
-def find_dict_in_list(key: str, list: list) -> dict:
-    for ele in list:
-        if type(ele) is dict and key in ele:
-            return ele
+            if chosen_server.already_chosen_this_round:
+                chosen_server.already_chosen_this_round = False
+                servers.queue.put(chosen_server)
+            else:
+                break
+
+        if not chosen_server.is_available(day.event_day, mass.event):
+            old_unsuitable = chosen_server
+            servers.waiting.put(chosen_server)
+        else:
+            return chosen_server

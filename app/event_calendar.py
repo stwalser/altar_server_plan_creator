@@ -60,7 +60,7 @@ class EventDay:
 
 
 class EventCalendar:
-    def __init__(self, raw_event_calendar: list, custom_masses: list):
+    def __init__(self, raw_event_calendar: list, raw_custom_masses: list):
         self.weekday_events = {}
         self.irregular_events = {}
         self.additional_events = {}
@@ -71,7 +71,7 @@ class EventCalendar:
             else:
                 self.irregular_events[event_day.date] = event_day
 
-        for raw_custom_mass in custom_masses:
+        for raw_custom_mass in raw_custom_masses:
             event_day = EventDay(raw_custom_mass)
             if event_day.date in self.irregular_events:
                 self.irregular_events[event_day.date].events += event_day.events

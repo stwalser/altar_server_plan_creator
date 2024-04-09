@@ -1,4 +1,8 @@
+import queue
+import random
 from datetime import datetime
+
+from event_calendar import EventDay, Event
 
 
 class AltarServer:
@@ -8,6 +12,7 @@ class AltarServer:
         self.avoid = []
         self.prefer = []
         self.always_high_mass = False
+        self.already_chosen_this_round = False
 
         if type(raw_altar_server) is str:
             self.name = raw_altar_server
@@ -29,8 +34,8 @@ class AltarServer:
     def has_siblings(self):
         return len(self.siblings) > 0
 
-    def is_available(self, weekday, time: datetime.time):
-        if weekday in self.avoid or time in self.avoid:
+    def is_available(self, event_day: EventDay, event: Event):
+        if event_day.id in self.avoid or event.time in self.avoid:
             return False
 
         return True
@@ -44,13 +49,20 @@ class AltarServer:
 
 class AltarServers:
     def __init__(self, raw_altar_servers):
-        self.all = []
+        altar_servers = []
         for raw_altar_server in raw_altar_servers:
-            self.all.append(AltarServer(raw_altar_server))
+            altar_servers.append(AltarServer(raw_altar_server))
 
-        for altar_server in self.all:
+        for altar_server in altar_servers:
             object_list = []
             if altar_server.has_siblings():
                 for sibling_name in altar_server.siblings:
-                    object_list.append(list(filter(lambda x: x.name == sibling_name, self.all))[0])
+                    object_list.append(list(filter(lambda x: x.name == sibling_name, altar_servers))[0])
                 altar_server.siblings = object_list
+
+        self.queue = queue.Queue()
+        self.waiting = queue.Queue()
+
+        random.shuffle(altar_servers)
+        for altar_server in altar_servers:
+            self.queue.put(altar_server)
