@@ -12,6 +12,7 @@ class Event:
         self.time = datetime.strptime(time_string, "%H:%M").time()
         self.comment = ""
         self.high_mass = False
+        self.location = ""
 
         inner = raw_mass[time_string]
 
@@ -21,6 +22,8 @@ class Event:
             self.comment = inner["comment"]
         if "high_mass" in inner:
             self.high_mass = True
+        if "location" in inner:
+            self.location = inner["location"]
 
     def __str__(self):
         return f"{self.time}: {self.comment}"

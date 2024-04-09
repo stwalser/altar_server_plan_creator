@@ -10,7 +10,7 @@ class AltarServer:
         self.name = ""
         self.siblings = []
         self.avoid = []
-        self.prefer = []
+        self.locations = []
         self.always_high_mass = False
         self.already_chosen_this_round = False
 
@@ -30,11 +30,16 @@ class AltarServer:
                         self.avoid.append(element)
             if "always_high_mass" in inner:
                 self.always_high_mass = True
+            if "locations" in inner:
+                self.locations = inner["locations"]
 
     def has_siblings(self):
         return len(self.siblings) > 0
 
     def is_available(self, event_day: EventDay, event: Event):
+        if event.location != "" and event.location not in self.locations:
+            return False
+
         if event_day.id in self.avoid or event.time in self.avoid:
             return False
 
