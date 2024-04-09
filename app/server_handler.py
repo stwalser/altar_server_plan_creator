@@ -1,39 +1,35 @@
 import copy
 import random
 
+from altar_server import AltarServer, AltarServers
 
-def add_servers_to_masses(masses: list, servers: list) -> None:
-    not_assigned_servers = copy.deepcopy(servers)
+
+def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
+    not_assigned_servers = copy.deepcopy(servers.all)
     assigned_servers = []
 
-    for day in masses:
+    for day in calendar:
         for mass in day.masses:
             n_servers_assigned = 0
-            while n_servers_assigned < mass.n_servers:
+            while n_servers_assigned < mass.event.n_servers:
                 try:
-                    chosen_server = random.choice(not_assigned_servers)
+                    chosen_server: AltarServer = random.choice(not_assigned_servers)
                 except IndexError:
                     not_assigned_servers = assigned_servers
                     assigned_servers = []
                     chosen_server = random.choice(not_assigned_servers)
 
-                if type(chosen_server) is dict and "siblings" in chosen_server:
-                    inner_data = chosen_server[list(chosen_server)[0]]
-                    if n_servers_assigned + len(inner_data["siblings"]) + 1 <= mass.n_servers:
-                        mass.add_server(list(chosen_server)[0])
+                if chosen_server.has_siblings():
+                    if n_servers_assigned + len(chosen_server.siblings) + 1 <= mass.event.n_servers:
+                        mass.add_server(chosen_server)
                         move(chosen_server, not_assigned_servers, assigned_servers)
-                        for server in inner_data["siblings"]:
-                            mass.add_server(server)
-                            sibling = find_dict_in_list(server, servers)
+                        for sibling in chosen_server.siblings:
+                            mass.add_server(sibling)
                             move(sibling, not_assigned_servers, assigned_servers)
 
-                        n_servers_assigned += len(inner_data["siblings"]) + 1
-                elif type(chosen_server) is str:
+                        n_servers_assigned += len(chosen_server.siblings) + 1
+                else:
                     mass.add_server(chosen_server)
-                    move(chosen_server, not_assigned_servers, assigned_servers)
-                    n_servers_assigned += 1
-                elif type(chosen_server) is dict and "siblings" not in chosen_server:
-                    mass.add_server(list(chosen_server)[0])
                     move(chosen_server, not_assigned_servers, assigned_servers)
                     n_servers_assigned += 1
 
