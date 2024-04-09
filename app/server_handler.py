@@ -17,11 +17,7 @@ def add_servers_to_masses(masses: list, servers: list) -> None:
                     assigned_servers = []
                     chosen_server = random.choice(not_assigned_servers)
 
-                if type(chosen_server) is str:
-                    mass.add_server(chosen_server)
-                    move(chosen_server, not_assigned_servers, assigned_servers)
-                    n_servers_assigned += 1
-                else:
+                if type(chosen_server) is dict and "siblings" in chosen_server:
                     inner_data = chosen_server[list(chosen_server)[0]]
                     if n_servers_assigned + len(inner_data["siblings"]) + 1 <= mass.n_servers:
                         mass.add_server(list(chosen_server)[0])
@@ -32,6 +28,14 @@ def add_servers_to_masses(masses: list, servers: list) -> None:
                             move(sibling, not_assigned_servers, assigned_servers)
 
                         n_servers_assigned += len(inner_data["siblings"]) + 1
+                elif type(chosen_server) is str:
+                    mass.add_server(chosen_server)
+                    move(chosen_server, not_assigned_servers, assigned_servers)
+                    n_servers_assigned += 1
+                elif type(chosen_server) is dict and "siblings" not in chosen_server:
+                    mass.add_server(list(chosen_server)[0])
+                    move(chosen_server, not_assigned_servers, assigned_servers)
+                    n_servers_assigned += 1
 
 
 def move(element, a: list, b: list) -> None:
