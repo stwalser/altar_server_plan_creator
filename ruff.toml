@@ -1,11 +1,12 @@
 line-length = 100
 indent-width = 4
 
+target-version = "py312"
+
 [lint]
 select = ["ALL"]
-ignore = ["D213", "D203"]
+ignore = ["D213", "D203", "COM812", "ISC001"]
 
 [format]
 quote-style = "double"
 docstring-code-format = true
-skip-magic-trailing-comma = true

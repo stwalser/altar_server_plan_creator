@@ -63,7 +63,7 @@ class AltarServers:
             if altar_server.has_siblings():
                 for sibling_name in altar_server.siblings:
                     object_list.append(
-                        list(filter(lambda x: x.name == sibling_name, altar_servers))[0],
+                        list(filter(lambda x: x.name == sibling_name, altar_servers))[0]
                     )
                 altar_server.siblings = object_list
 

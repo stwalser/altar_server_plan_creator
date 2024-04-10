@@ -8,7 +8,7 @@ from pylatex.utils import bold
 class Plan(Document):
     def __init__(self, start_date, end_date):
         super().__init__(
-            indent=False, geometry_options=["a4paper", "margin=1in", "landscape", "twocolumn"],
+            indent=False, geometry_options=["a4paper", "margin=1in", "landscape", "twocolumn"]
         )
 
         self.preamble.append(Command("usepackage", "supertabular"))
@@ -16,7 +16,7 @@ class Plan(Document):
 
         self.preamble.append(Command("title", "Miniplan"))
         self.preamble.append(
-            Command("date", start_date.strftime("%d.%m.") + " - " + end_date.strftime("%d.%m.%Y")),
+            Command("date", start_date.strftime("%d.%m.") + " - " + end_date.strftime("%d.%m.%Y"))
         )
         self.append(NoEscape(r"\maketitle"))
 
@@ -28,7 +28,7 @@ class Plan(Document):
 
 
 def generate_pdf(
-    days: list, start_date: datetime.date, end_date: datetime.date, welcome_text: dict,
+    days: list, start_date: datetime.date, end_date: datetime.date, welcome_text: dict
 ) -> None:
     doc = Plan(start_date, end_date)
     doc.add_welcome_text(welcome_text)

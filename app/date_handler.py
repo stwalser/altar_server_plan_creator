@@ -5,7 +5,7 @@ from holy_mass import Day, HolyMass
 
 
 def create_calendar(
-    start_date: datetime.date, end_date: datetime.date, event_calendar: EventCalendar,
+    start_date: datetime.date, end_date: datetime.date, event_calendar: EventCalendar
 ):
     calendar = []
     date = start_date

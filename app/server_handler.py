@@ -21,7 +21,7 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
             n_servers_assigned = 0
             if mass.event.high_mass:
                 n_servers_assigned = assign_high_mass_priority_servers(
-                    mass, n_servers_assigned, servers,
+                    mass, n_servers_assigned, servers
                 )
 
             while n_servers_assigned < mass.event.n_servers:
@@ -39,7 +39,7 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
 
 
 def assign_high_mass_priority_servers(
-    mass: HolyMass, n_servers_assigned: int, servers: AltarServers,
+    mass: HolyMass, n_servers_assigned: int, servers: AltarServers
 ) -> int:
     """Assign servers to a mass that are prioritized for high masses.
 
