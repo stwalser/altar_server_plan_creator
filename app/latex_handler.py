@@ -1,12 +1,23 @@
+"""A that module contains logic to convert the list of masses into a PDF file via PyLaTeX."""
 from datetime import datetime
 
 from babel.dates import format_date, format_time
+from holy_mass import Day
 from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular
 from pylatex.utils import bold
 
+TABLE_WIDTH = 4
+
 
 class Plan(Document):
-    def __init__(self, start_date, end_date):
+    """Represents a plan that is converted to PDF file via PyLaTeX."""
+
+    def __init__(self: "Plan", start_date: datetime.date, end_date: datetime.date) -> None:
+        """Create a plan object.
+
+        :param start_date: Start date of the plan.
+        :param end_date: End date of the plan.
+        """
         super().__init__(
             indent=False, geometry_options=["a4paper", "margin=1in", "landscape", "twocolumn"]
         )
@@ -20,7 +31,11 @@ class Plan(Document):
         )
         self.append(NoEscape(r"\maketitle"))
 
-    def add_welcome_text(self, welcome_text) -> None:
+    def add_welcome_text(self: "Plan", welcome_text: dict) -> None:
+        """Add the welcome text to the plan.
+
+        :param welcome_text: The welcome text.
+        """
         self.append(f"{welcome_text["greeting"]}\n\n")
         for body in welcome_text["body"]:
             self.append(f"{body}\n\n")
@@ -30,13 +45,22 @@ class Plan(Document):
 def generate_pdf(
     days: list, start_date: datetime.date, end_date: datetime.date, welcome_text: dict
 ) -> None:
+    """Generate a PDF of the plan.
+
+    First the welcome text is added. Then the table with all masses and servers is added. The
+    tabular object is changed to a supertabular, which allows to span over multiple pages.
+    :param days: The calendar days.
+    :param start_date: The start date of the plan.
+    :param end_date: The end date of the plan.
+    :param welcome_text: The welcome text.
+    """
     doc = Plan(start_date, end_date)
     doc.add_welcome_text(welcome_text)
 
     doc.append(NewPage())
 
     patched_tabular = Tabular("llll", row_height=1.4)
-    patched_tabular._latex_name = "supertabular"
+    patched_tabular._latex_name = "supertabular"  # noqa: SLF001
     with doc.create(patched_tabular) as table:
         fill_document(table, days)
 
@@ -44,8 +68,13 @@ def generate_pdf(
 
 
 def fill_document(table: Tabular, days: list) -> None:
+    """Add the masses to the document.
+
+    :param table: The table containing the masses and servers.
+    :param days: The calendar days.
+    """
     for day in days:
-        conditional_hline(day, table)
+        conditional_hline_start(day, table)
         table_row = (format_date(day.date, "EEE dd.LL.", locale="de"),)
         for i, mass in enumerate(sorted(day.masses, key=lambda x: x.event.time)):
             mass.servers = sorted(mass.servers, key=lambda x: x.name)
@@ -63,19 +92,39 @@ def fill_document(table: Tabular, days: list) -> None:
             for altar_server in mass.servers:
                 table_row += (altar_server,)
                 table_row = conditional_write(table, table_row)
-        conditional_hline(day, table, True)
+        conditional_hline_end(day, table)
         table.add_empty_row()
 
 
-def conditional_hline(day, table, end=False):
-    if day.name != "":
+def conditional_hline_start(day: Day, table: Tabular) -> None:
+    """Add a horizontal line and the name of the day to the table if it is a day with a name.
+
+    :param day: The calendar day.
+    :param table: The tabular object.
+    """
+    if day.event_day.name != "":
         table.add_hline()
-        if not end:
-            table.add_row((MultiColumn(4, align="c", data=bold(day.name)),))
+        table.add_row((MultiColumn(TABLE_WIDTH, align="c", data=bold(day.event_day.name)),))
 
 
-def conditional_write(table, table_row):
-    if len(table_row) == 4:
+def conditional_hline_end(day: Day, table: Tabular) -> None:
+    """Add a horizontal line to the table if it is a special day with a name.
+
+    :param day: The calendar day.
+    :param table: The tabular object
+    """
+    if day.event_day.name != "":
+        table.add_hline()
+
+
+def conditional_write(table: Tabular, table_row: tuple) -> tuple:
+    """Write a complete row to the tabular object.
+
+    :param table: The tabular object.
+    :param table_row: The row to write.
+    :return: A new row, if the row was written or, otherwise, the same row.
+    """
+    if len(table_row) == TABLE_WIDTH:
         table.add_row(table_row)
         table_row = ("", "")
     return table_row
