@@ -1,15 +1,23 @@
-from datetime import datetime, timedelta
+"""A module that contains the representations of events and event days and their associated data."""
+
+from datetime import datetime, timedelta, timezone
 
 from dateutil import easter
 
-EASTER_SUNDAY = easter.easter(datetime.today().year)
+EASTER_SUNDAY = easter.easter(datetime.now(tz=timezone(timedelta(2))).year)
 
 
 class Event:
-    def __init__(self, raw_mass):
-        time_string = list(raw_mass)[0]
+    """Class that represents a single event in the event calendar. Typically, a mass."""
 
-        self.time = datetime.strptime(time_string, "%H:%M").time()
+    def __init__(self: "Event", raw_mass: dict) -> None:
+        """Create a new Event object.
+
+        :param raw_mass: The dictionary containing info about the mass.
+        """
+        time_string = next(iter(raw_mass))
+
+        self.time = datetime.strptime(time_string, "%H:%M").astimezone().time()
         self.comment = ""
         self.high_mass = False
         self.location = ""
@@ -25,16 +33,24 @@ class Event:
         if "location" in inner:
             self.location = inner["location"]
 
-    def __str__(self):
+    def __str__(self: "Event") -> str:
+        """Return string representation of the object."""
         return f"{self.time}: {self.comment}"
 
-    def __repr__(self):
+    def __repr__(self: "Event") -> str:
+        """Return a string representation of the object."""
         return self.__str__()
 
 
 class EventDay:
-    def __init__(self, raw_event: dict):
-        self.id = list(raw_event)[0]
+    """Class that represents a day containing one or multiple events."""
+
+    def __init__(self: "EventDay", raw_event: dict) -> None:
+        """Create a new EventDay object.
+
+        :param raw_event: The dictionary containing information about the event day.
+        """
+        self.id = next(iter(raw_event))
         inner = raw_event[self.id]
 
         self.weekday = None
@@ -50,20 +66,29 @@ class EventDay:
         elif "easter" in inner["date"]:
             self.date = EASTER_SUNDAY + timedelta(days=int(inner["date"]["easter"]))
         else:
-            self.date = datetime.strptime(inner["date"], "%d.%m.%Y").date()
+            self.date = datetime.strptime(inner["date"], "%d.%m.%Y").astimezone().date()
 
         for raw_mass in inner["masses"]:
             self.events.append(Event(raw_mass))
 
-    def __str__(self):
+    def __str__(self: "EventDay") -> str:
+        """Return string representation of the object."""
         return f"{self.date} - {self.weekday} - {self.id}"
 
-    def __repr__(self):
+    def __repr__(self: "EventDay") -> str:
+        """Return a string representation of the object."""
         return self.__str__()
 
 
 class EventCalendar:
-    def __init__(self, raw_event_calendar: list, raw_custom_masses: list):
+    """The Event calendar class that contains all events and their information."""
+
+    def __init__(self: "EventCalendar", raw_event_calendar: list, raw_custom_masses: list) -> None:
+        """Create an Event calendar object.
+
+        :param raw_event_calendar: The dictionary containing all regular masses from the .yaml file.
+        :param raw_custom_masses: The dictionary containing all custom masses from the .yaml file.
+        """
         self.weekday_events = {}
         self.irregular_events = {}
         self.additional_events = {}
@@ -85,8 +110,16 @@ class EventCalendar:
                         event_day.date.weekday()
                     ].events
 
-    def get_event_day_by_date(self, date: datetime.date) -> EventDay | None:
+    def get_event_day_by_date(self: "EventCalendar", date: datetime.date) -> EventDay | None:
+        """Get the event day object if there are any events on a specific date.
+
+        :param date: The date to get the event day object for.
+        :return: The event day object if there are any events, else None.
+        """
         if date in self.irregular_events:
             return self.irregular_events[date]
-        elif date.weekday() in self.weekday_events:
+
+        if date.weekday() in self.weekday_events:
             return self.weekday_events[date.weekday()]
+
+        return None
