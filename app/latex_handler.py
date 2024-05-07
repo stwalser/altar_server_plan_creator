@@ -1,4 +1,5 @@
 """A that module contains logic to convert the list of masses into a PDF file via PyLaTeX."""
+
 from datetime import datetime
 
 from babel.dates import format_date, format_time

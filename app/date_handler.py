@@ -1,3 +1,5 @@
+"""A module that contains functions to create day objects which are printed to the plan."""
+
 from datetime import datetime, timedelta
 
 from event_calendar import EventCalendar, EventDay
@@ -6,7 +8,14 @@ from holy_mass import Day, HolyMass
 
 def create_calendar(
     start_date: datetime.date, end_date: datetime.date, event_calendar: EventCalendar
-):
+) -> list:
+    """Create a calendar (all the dates on the plan) which is a list of calendar days.
+
+    :param start_date: The first day of the calendar.
+    :param end_date: The last day of the calendar.
+    :param event_calendar: The event calendar object containing all masses.
+    :return: The list of day objects.
+    """
     calendar = []
     date = start_date
     while date <= end_date:
@@ -18,7 +27,13 @@ def create_calendar(
     return calendar
 
 
-def create_calendar_day(date: datetime.time, event_day: EventDay):
+def create_calendar_day(date: datetime.time, event_day: EventDay) -> Day:
+    """Create a calendar day object for an event day object.
+
+    :param date: The date of the day.
+    :param event_day: The associated event day.
+    :return: The calendar day object.
+    """
     calendar_day = Day(date, event_day)
     calendar_day.name = event_day.name
 
