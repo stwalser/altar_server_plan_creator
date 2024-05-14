@@ -9,7 +9,7 @@ from event_calendar import Event, EventDay
 class HolyMass:
     """The representation of a holy mass."""
 
-    def __init__(self: "HolyMass", event: Event) -> None:
+    def __init__(self, event: Event) -> None:
         """Create a holy mass object.
 
         :param event: The event object associated with this holy mass.
@@ -36,7 +36,7 @@ class HolyMass:
 class Day:
     """The representation of a day of the calendar."""
 
-    def __init__(self: "Day", date: datetime.date, event_day: EventDay) -> None:
+    def __init__(self, date: datetime.date, event_day: EventDay) -> None:
         """Create a calendar day object.
 
         :param date: The date of the day.

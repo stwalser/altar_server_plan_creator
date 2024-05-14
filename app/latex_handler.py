@@ -4,7 +4,7 @@ from datetime import datetime
 
 from babel.dates import format_date, format_time
 from holy_mass import Day
-from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular
+from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular, VerticalSpace
 from pylatex.utils import bold
 
 TABLE_WIDTH = 4
@@ -63,12 +63,12 @@ def generate_pdf(
     patched_tabular = Tabular("llll", row_height=1.4)
     patched_tabular._latex_name = "supertabular"  # noqa: SLF001
     with doc.create(patched_tabular) as table:
-        fill_document(table, days)
+        fill_document(table, days, doc)
 
     doc.generate_pdf("output/plan", clean_tex=False)
 
 
-def fill_document(table: Tabular, days: list) -> None:
+def fill_document(table: Tabular, days: list, doc: Document) -> None:
     """Add the masses to the document.
 
     :param table: The table containing the masses and servers.
@@ -78,6 +78,9 @@ def fill_document(table: Tabular, days: list) -> None:
         conditional_hline_start(day, table)
         table_row = (format_date(day.date, "EEE dd.LL.", locale="de"),)
         for i, mass in enumerate(sorted(day.masses, key=lambda x: x.event.time)):
+            if i != 0:
+                table.add_empty_row()
+
             mass.servers = sorted(mass.servers, key=lambda x: x.name)
 
             if i == 0:
@@ -93,6 +96,7 @@ def fill_document(table: Tabular, days: list) -> None:
             for altar_server in mass.servers:
                 table_row += (altar_server,)
                 table_row = conditional_write(table, table_row)
+
         conditional_hline_end(day, table)
         table.add_empty_row()
 

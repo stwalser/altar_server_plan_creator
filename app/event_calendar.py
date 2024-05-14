@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from dateutil import easter
 
-EASTER_SUNDAY = easter.easter(datetime.now(tz=timezone(timedelta(2))).year)
+EASTER_SUNDAY = easter.easter(datetime.now(tz=timezone(timedelta(hours=2))).year)
 
 
 class Event:
