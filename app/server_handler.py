@@ -1,5 +1,5 @@
 """A module that contains the functionality of assigning servers to masses."""
-
+import random
 from queue import Empty
 
 from altar_server import AltarServer, AltarServers
@@ -16,9 +16,15 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
     :param calendar: The list of all days, where a mass takes place.
     :param servers: Wrapper object of all servers.
     """
+    total_servers_assigned = 0
     for day in calendar:
         for mass in day.masses:
             n_servers_assigned = 0
+            if total_servers_assigned >= len(servers.queue.queue) + len(servers.waiting.queue):
+                print("shuffled")
+                servers.shuffle_servers(list(servers.queue.queue))
+                total_servers_assigned = 0
+
             if mass.event.high_mass:
                 n_servers_assigned = assign_high_mass_priority_servers(
                     mass, n_servers_assigned, servers
@@ -34,8 +40,12 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
                         for sibling in chosen_server.siblings:
                             if sibling.is_available(day.event_day, mass.event):
                                 n_servers_assigned += assign_sibling_server(sibling, mass)
+                    else:
+                        servers.queue.put(chosen_server)
                 else:
                     n_servers_assigned += assign_single_server(chosen_server, mass, servers)
+
+            total_servers_assigned += n_servers_assigned
 
 
 def assign_high_mass_priority_servers(
@@ -52,6 +62,7 @@ def assign_high_mass_priority_servers(
     while n_servers_assigned < mass.event.n_servers:
         chosen_server = servers.high_mass_priority.get_nowait()
         if chosen_server in already_considered:
+            servers.high_mass_priority.put(chosen_server)
             return n_servers_assigned
 
         already_considered.append(chosen_server)
@@ -59,6 +70,7 @@ def assign_high_mass_priority_servers(
         chosen_server.already_chosen_this_round = True
         servers.high_mass_priority.put(chosen_server)
         n_servers_assigned += 1
+        chosen_server.number_of_services += 1  # do manually, because is_available() is not  called
     return n_servers_assigned
 
 
@@ -72,6 +84,7 @@ def assign_single_server(chosen_server: AltarServer, mass: HolyMass, servers: Al
     """
     mass.add_server(chosen_server)
     servers.queue.put(chosen_server)
+    chosen_server.number_of_services += 1
     return 1
 
 
@@ -86,6 +99,7 @@ def assign_sibling_server(sibling: AltarServer, mass: HolyMass) -> int:
     """
     mass.add_server(sibling)
     sibling.already_chosen_this_round = True
+    sibling.number_of_services += 1
     return 1
 
 
@@ -104,7 +118,7 @@ def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> A
         while True:
             try:
                 chosen_server = servers.waiting.get_nowait()
-                check_if_already_considered(already_considered, chosen_server)
+                check_if_already_considered(already_considered, chosen_server, servers)
             except (Empty, SameServerTwiceError):
                 chosen_server = servers.queue.get_nowait()
 
@@ -121,11 +135,15 @@ def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> A
             return chosen_server
 
 
-def check_if_already_considered(already_considered: list, chosen_server: AltarServer) -> None:
+def check_if_already_considered(
+    already_considered: list, chosen_server: AltarServer, servers: AltarServers
+) -> None:
     """Check if a server was already considered and if it is, raise and error.
 
+    :param servers:
     :param already_considered: list of already considered servers.
     :param chosen_server: server to check.
     """
     if chosen_server in already_considered:
+        servers.waiting.put(chosen_server)
         raise SameServerTwiceError
