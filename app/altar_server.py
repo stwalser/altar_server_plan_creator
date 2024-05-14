@@ -1,5 +1,6 @@
 """A module that contains the class that represents a server and also contains the wrapper class."""
 
+import logging
 import queue
 import random
 from datetime import datetime
@@ -21,6 +22,7 @@ class AltarServer:
         self.locations = []
         self.always_high_mass = False
         self.already_chosen_this_round = False
+        self.number_of_services = 0
 
         if isinstance(raw_altar_server, str):
             self.name = raw_altar_server
@@ -100,9 +102,23 @@ class AltarServers:
         self.waiting = queue.Queue()
         self.high_mass_priority = queue.Queue()
 
-        random.shuffle(altar_servers)
-        for altar_server in altar_servers:
-            self.queue.put(altar_server)
+        self.shuffle_servers(altar_servers)
 
         for altar_server in list(filter(lambda x: x.always_high_mass, altar_servers)):
             self.high_mass_priority.put(altar_server)
+
+    def shuffle_servers(self, altar_servers):
+        """Shuffle the servers and assign them to the queue randomly.
+
+        :param altar_servers: The servers
+        """
+        random.shuffle(altar_servers)
+        self.queue = queue.Queue()
+        for altar_server in altar_servers:
+            self.queue.put(altar_server)
+
+    def print_distribution(self):
+        for server in sorted(list(self.queue.queue), key=lambda x: x.name):
+            print(server.name, server.number_of_services)
+        for server in sorted(list(self.waiting.queue), key=lambda x: x.name):
+            print(server.name, server.number_of_services)
