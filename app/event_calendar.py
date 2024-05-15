@@ -109,6 +109,9 @@ class EventCalendar:
                     self.irregular_events[event_day.date].events += self.weekday_events[
                         event_day.date.weekday()
                     ].events
+                    self.irregular_events[event_day.date].id = self.weekday_events[
+                        event_day.date.weekday()
+                    ].id
 
     def get_event_day_by_date(self: "EventCalendar", date: datetime.date) -> EventDay | None:
         """Get the event day object if there are any events on a specific date.

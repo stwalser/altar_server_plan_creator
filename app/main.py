@@ -33,10 +33,10 @@ def main() -> None:
 
     logger.info("Konfiguration wird geladen...")
     raw_altar_servers = load_yaml_file("config/minis.yaml")
-    altar_servers = AltarServers(raw_altar_servers)
     raw_event_calendar = load_yaml_file("config/holy_masses.yaml")
     raw_custom_masses = load_yaml_file("config/custom_masses.yaml")
     event_calendar = EventCalendar(raw_event_calendar, raw_custom_masses)
+    altar_servers = AltarServers(raw_altar_servers, event_calendar)
     plan_info = load_yaml_file("config/plan_info.yaml")
 
     start_date = datetime.strptime(plan_info["start_date"], "%d.%m.%Y").astimezone().date()

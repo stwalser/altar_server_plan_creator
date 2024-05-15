@@ -1,8 +1,9 @@
 """A module that contains the functionality of assigning servers to masses."""
-import random
-from queue import Empty
+
+import queue
 
 from altar_server import AltarServer, AltarServers
+from event_calendar import EventDay, Event
 from holy_mass import Day, HolyMass
 
 
@@ -16,14 +17,11 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
     :param calendar: The list of all days, where a mass takes place.
     :param servers: Wrapper object of all servers.
     """
-    total_servers_assigned = 0
     for day in calendar:
+        print(day)
         for mass in day.masses:
+            print(mass)
             n_servers_assigned = 0
-            if total_servers_assigned >= len(servers.queue.queue) + len(servers.waiting.queue):
-                print("shuffled")
-                servers.shuffle_servers(list(servers.queue.queue))
-                total_servers_assigned = 0
 
             if mass.event.high_mass:
                 n_servers_assigned = assign_high_mass_priority_servers(
@@ -32,24 +30,45 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
 
             while n_servers_assigned < mass.event.n_servers:
                 chosen_server = get_server_from_queues(servers, day, mass)
-
+                print(chosen_server)
                 if chosen_server.has_siblings():
-                    if n_servers_assigned + len(chosen_server.siblings) + 1 <= mass.event.n_servers:
-                        n_servers_assigned += assign_single_server(chosen_server, mass, servers)
-
-                        for sibling in chosen_server.siblings:
-                            if sibling.is_available(day.event_day, mass.event):
-                                n_servers_assigned += assign_sibling_server(sibling, mass)
-                    else:
-                        servers.queue.put(chosen_server)
+                    if all(
+                            [
+                                is_available(servers, sibling, day.event_day, mass.event)
+                                for sibling in chosen_server.siblings
+                            ]
+                    ):
+                        if (
+                                n_servers_assigned + len(chosen_server.siblings) + 1
+                                <= mass.event.n_servers
+                        ):
+                            n_servers_assigned += assign_single_server(chosen_server, mass, servers)
+                            for sibling in chosen_server.siblings:
+                                n_servers_assigned += assign_single_server(sibling, mass, servers)
+                        else:
+                            reinsert_server_into_queue(servers, chosen_server, day, mass)
+                            prevent_endless_loop(servers, chosen_server, day.event_day, mass.event)
                 else:
                     n_servers_assigned += assign_single_server(chosen_server, mass, servers)
 
-            total_servers_assigned += n_servers_assigned
+
+def is_available(
+        servers: AltarServers, chosen_server: AltarServer, event_day: EventDay, event: Event
+) -> bool:
+    day_queue = get_queue_for_event(servers, event_day, event)
+    return chosen_server in list(day_queue.queue)
+
+
+def prevent_endless_loop(
+        servers: AltarServers, chosen_server: AltarServer, event_day: EventDay, event: Event
+) -> None:
+    day_queue = get_queue_for_event(servers, event_day, event)
+    if all([server.has_siblings() for server in day_queue.queue]):
+        servers.fill_queue_for(event_day, event)
 
 
 def assign_high_mass_priority_servers(
-    mass: HolyMass, n_servers_assigned: int, servers: AltarServers
+        mass: HolyMass, n_servers_assigned: int, servers: AltarServers
 ) -> int:
     """Assign servers to a mass that are prioritized for high masses.
 
@@ -67,10 +86,10 @@ def assign_high_mass_priority_servers(
 
         already_considered.append(chosen_server)
         mass.add_server(chosen_server)
-        chosen_server.already_chosen_this_round = True
         servers.high_mass_priority.put(chosen_server)
         n_servers_assigned += 1
-        chosen_server.number_of_services += 1  # do manually, because is_available() is not  called
+        chosen_server.number_of_services += 1
+        servers.choose(chosen_server)
     return n_servers_assigned
 
 
@@ -83,67 +102,55 @@ def assign_single_server(chosen_server: AltarServer, mass: HolyMass, servers: Al
     :return: 1 to increase the counter.
     """
     mass.add_server(chosen_server)
-    servers.queue.put(chosen_server)
+    servers.choose(chosen_server)
     chosen_server.number_of_services += 1
     return 1
 
 
-def assign_sibling_server(sibling: AltarServer, mass: HolyMass) -> int:
-    """Assign sibling server to a mass.
-
-    It sets the already_chosen_this_round flag to true to skip the sibling, when it is dequeued
-    the next time.
-    :param sibling: The sibling server.
-    :param mass: The mass to assign the sibling server to.
-    :return: 1 to increase the counter.
-    """
-    mass.add_server(sibling)
-    sibling.already_chosen_this_round = True
-    sibling.number_of_services += 1
-    return 1
+def reinsert_server_into_queue(
+        servers: AltarServers, server: AltarServer, day: Day, mass: HolyMass
+) -> None:
+    if (
+            day.event_day.id in servers.regular_queues
+            and mass.event.time in servers.regular_queues[day.event_day.id]
+    ):
+        servers.regular_queues[day.event_day.id][mass.event.time].put(server)
+    else:
+        servers.other_queue.put(server)
 
 
 def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> AltarServer:
-    """Get an available server from one of the queues.
-
-    If there is a server in the waiting queue, it is preferred. Otherwise, the next one from the
-    standard queue is chosen. If the server is not available, it is added to the waiting queue.
+    """
     :param servers: Wrapper object of all servers.
     :param day: Holds the information about the day.
     :param mass: Holds the information about the mass.
     :return: The chosen server.
     """
-    already_considered = []
+    count = 0
     while True:
-        while True:
-            try:
-                chosen_server = servers.waiting.get_nowait()
-                check_if_already_considered(already_considered, chosen_server, servers)
-            except (Empty, SameServerTwiceError):
-                chosen_server = servers.queue.get_nowait()
+        day_queue = get_queue_for_event(servers, day.event_day, mass.event)
+        if day_queue.empty():
+            servers.fill_queue_for(day.event_day, mass.event)
+            print("Refilled", mass, day_queue.queue)
+        next_server = day_queue.get_nowait()
 
-            if chosen_server.already_chosen_this_round:
-                chosen_server.already_chosen_this_round = False
-                servers.queue.put(chosen_server)
-            else:
-                break
-
-        if not chosen_server.is_available(day.event_day, mass.event):
-            already_considered.append(chosen_server)
-            servers.waiting.put(chosen_server)
+        if next_server not in servers.already_chosen_this_round:
+            break
         else:
-            return chosen_server
+            day_queue.put(next_server)
+
+        count += 1
+        if count > len(day_queue.queue):
+            servers.empty_already_chosen_list()
+
+    return next_server
 
 
-def check_if_already_considered(
-    already_considered: list, chosen_server: AltarServer, servers: AltarServers
-) -> None:
-    """Check if a server was already considered and if it is, raise and error.
-
-    :param servers:
-    :param already_considered: list of already considered servers.
-    :param chosen_server: server to check.
-    """
-    if chosen_server in already_considered:
-        servers.waiting.put(chosen_server)
-        raise SameServerTwiceError
+def get_queue_for_event(servers: AltarServers, event_day: EventDay, event: Event) -> queue.Queue:
+    if (
+            event_day.id in servers.regular_queues
+            and event.time in servers.regular_queues[event_day.id]
+    ):
+        return servers.regular_queues[event_day.id][event.time]
+    else:
+        return servers.other_queue
