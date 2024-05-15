@@ -11,6 +11,10 @@ class SameServerTwiceError(Exception):
     """Simple Exception that is thrown when a server has already been considered for a mass."""
 
 
+class BadSituationError(Exception):
+    """Raised when two siblings should be assigned to an event where only one spot is left."""
+
+
 def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
     """Assign altar servers to a calendar consisting of multiple masses.
 
@@ -41,8 +45,7 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
                             for sibling in chosen_server.siblings:
                                 n_servers_assigned += assign_single_server(sibling, mass, servers)
                         else:
-                            reinsert_server_into_queue(servers, chosen_server, day, mass)
-                            prevent_endless_loop(servers, day, mass)
+                            raise BadSituationError
                 else:
                     n_servers_assigned += assign_single_server(chosen_server, mass, servers)
 
@@ -61,18 +64,6 @@ def is_available(
     """
     day_queue = get_queue_for_event(servers, day.event_day, mass.event)
     return chosen_server in list(day_queue.queue)
-
-
-def prevent_endless_loop(servers: AltarServers, day: Day, mass: HolyMass) -> None:
-    """Prevent an endless loop, by refilling the queue of a mass, if all servers left have siblings.
-
-    :param servers: The servers object.
-    :param day: The day of the mass.
-    :param mass: The holy mass.
-    """
-    day_queue = get_queue_for_event(servers, day.event_day, mass.event)
-    if all(server.has_siblings() for server in day_queue.queue):
-        servers.fill_queue_for(day.event_day, mass.event)
 
 
 def assign_high_mass_priority_servers(
@@ -113,20 +104,6 @@ def assign_single_server(chosen_server: AltarServer, mass: HolyMass, servers: Al
     servers.choose(chosen_server)
     chosen_server.number_of_services += 1
     return 1
-
-
-def reinsert_server_into_queue(
-    servers: AltarServers, server: AltarServer, day: Day, mass: HolyMass
-) -> None:
-    """Put a server back into the queue its from.
-
-    :param servers: The servers object.
-    :param server: The server to put back in.
-    :param day: The day of the mass.
-    :param mass: The holy mass.
-    """
-    day_queue = get_queue_for_event(servers, day.event_day, mass.event)
-    day_queue.put(server)
 
 
 def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> AltarServer:

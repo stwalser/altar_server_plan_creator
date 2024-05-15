@@ -10,7 +10,7 @@ from altar_server import AltarServers
 from date_handler import create_calendar
 from event_calendar import EventCalendar
 from latex_handler import generate_pdf
-from server_handler import assign_altar_servers
+from server_handler import BadSituationError, assign_altar_servers
 
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
@@ -47,13 +47,25 @@ def main() -> None:
     calendar = create_calendar(start_date, end_date, event_calendar)
     logger.info("Abgeschlossen")
     logger.info("Ministranten werden eingeteilt...")
-    assign_altar_servers(calendar, altar_servers)
-    logger.info("Abgeschlossen")
+
+    count = 1
+    while True:
+        altar_servers = AltarServers(raw_altar_servers, event_calendar)
+        calendar = create_calendar(start_date, end_date, event_calendar)
+        try:
+            assign_altar_servers(calendar, altar_servers)
+        except BadSituationError:
+            count += 1
+            continue
+        break
+
+    logger.info("Abgeschlossen nach %d Versuchen", count)
+    logger.info("Statistik")
+    for server in altar_servers.get_distribution():
+        logger.info(server)
     logger.info("PDF wird erstellt")
     generate_pdf(calendar, start_date, end_date, plan_info["welcome_text"])
     logger.info("Abgeschlossen")
-    logger.info("Statistik")
-    logger.info(altar_servers.get_distribution())
 
 
 if __name__ == "__main__":
