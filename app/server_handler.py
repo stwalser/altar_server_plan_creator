@@ -3,7 +3,7 @@
 import queue
 
 from altar_server import AltarServer, AltarServers
-from event_calendar import EventDay, Event
+from event_calendar import Event, EventDay
 from holy_mass import Day, HolyMass
 
 
@@ -18,9 +18,7 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
     :param servers: Wrapper object of all servers.
     """
     for day in calendar:
-        print(day)
         for mass in day.masses:
-            print(mass)
             n_servers_assigned = 0
 
             if mass.event.high_mass:
@@ -30,45 +28,55 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
 
             while n_servers_assigned < mass.event.n_servers:
                 chosen_server = get_server_from_queues(servers, day, mass)
-                print(chosen_server)
                 if chosen_server.has_siblings():
                     if all(
-                            [
-                                is_available(servers, sibling, day.event_day, mass.event)
-                                for sibling in chosen_server.siblings
-                            ]
+                        is_available(servers, sibling, day, mass)
+                        for sibling in chosen_server.siblings
                     ):
                         if (
-                                n_servers_assigned + len(chosen_server.siblings) + 1
-                                <= mass.event.n_servers
+                            n_servers_assigned + len(chosen_server.siblings) + 1
+                            <= mass.event.n_servers
                         ):
                             n_servers_assigned += assign_single_server(chosen_server, mass, servers)
                             for sibling in chosen_server.siblings:
                                 n_servers_assigned += assign_single_server(sibling, mass, servers)
                         else:
                             reinsert_server_into_queue(servers, chosen_server, day, mass)
-                            prevent_endless_loop(servers, chosen_server, day.event_day, mass.event)
+                            prevent_endless_loop(servers, day, mass)
                 else:
                     n_servers_assigned += assign_single_server(chosen_server, mass, servers)
 
 
 def is_available(
-        servers: AltarServers, chosen_server: AltarServer, event_day: EventDay, event: Event
+    servers: AltarServers, chosen_server: AltarServer, day: Day, mass: HolyMass
 ) -> bool:
-    day_queue = get_queue_for_event(servers, event_day, event)
+    """Check if a server is available at a certain mass.
+
+    This is required, because not all siblings may available at a certain mass.
+    :param servers: The servers object.
+    :param chosen_server: The server to check the availability for.
+    :param day: The day of the mass.
+    :param mass: The holy mass.
+    :return: True if the server is available, else False.
+    """
+    day_queue = get_queue_for_event(servers, day.event_day, mass.event)
     return chosen_server in list(day_queue.queue)
 
 
-def prevent_endless_loop(
-        servers: AltarServers, chosen_server: AltarServer, event_day: EventDay, event: Event
-) -> None:
-    day_queue = get_queue_for_event(servers, event_day, event)
-    if all([server.has_siblings() for server in day_queue.queue]):
-        servers.fill_queue_for(event_day, event)
+def prevent_endless_loop(servers: AltarServers, day: Day, mass: HolyMass) -> None:
+    """Prevent an endless loop, by refilling the queue of a mass, if all servers left have siblings.
+
+    :param servers: The servers object.
+    :param day: The day of the mass.
+    :param mass: The holy mass.
+    """
+    day_queue = get_queue_for_event(servers, day.event_day, mass.event)
+    if all(server.has_siblings() for server in day_queue.queue):
+        servers.fill_queue_for(day.event_day, mass.event)
 
 
 def assign_high_mass_priority_servers(
-        mass: HolyMass, n_servers_assigned: int, servers: AltarServers
+    mass: HolyMass, n_servers_assigned: int, servers: AltarServers
 ) -> int:
     """Assign servers to a mass that are prioritized for high masses.
 
@@ -108,19 +116,26 @@ def assign_single_server(chosen_server: AltarServer, mass: HolyMass, servers: Al
 
 
 def reinsert_server_into_queue(
-        servers: AltarServers, server: AltarServer, day: Day, mass: HolyMass
+    servers: AltarServers, server: AltarServer, day: Day, mass: HolyMass
 ) -> None:
-    if (
-            day.event_day.id in servers.regular_queues
-            and mass.event.time in servers.regular_queues[day.event_day.id]
-    ):
-        servers.regular_queues[day.event_day.id][mass.event.time].put(server)
-    else:
-        servers.other_queue.put(server)
+    """Put a server back into the queue its from.
+
+    :param servers: The servers object.
+    :param server: The server to put back in.
+    :param day: The day of the mass.
+    :param mass: The holy mass.
+    """
+    day_queue = get_queue_for_event(servers, day.event_day, mass.event)
+    day_queue.put(server)
 
 
 def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> AltarServer:
-    """
+    """Get a server from the correct queue.
+
+    If the queue for an event is empty, it is refilled. The server is only chosen, if it has not
+    been chosen this round. This mechanism is required, because of the sibling mechanism. It is
+    possible that a server was already assigned because of its sibling. The counter ensures that
+    all servers in the queue have been assigned already, the already assigned list is cleared.
     :param servers: Wrapper object of all servers.
     :param day: Holds the information about the day.
     :param mass: Holds the information about the mass.
@@ -131,13 +146,12 @@ def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> A
         day_queue = get_queue_for_event(servers, day.event_day, mass.event)
         if day_queue.empty():
             servers.fill_queue_for(day.event_day, mass.event)
-            print("Refilled", mass, day_queue.queue)
         next_server = day_queue.get_nowait()
 
         if next_server not in servers.already_chosen_this_round:
             break
-        else:
-            day_queue.put(next_server)
+
+        day_queue.put(next_server)
 
         count += 1
         if count > len(day_queue.queue):
@@ -147,10 +161,17 @@ def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> A
 
 
 def get_queue_for_event(servers: AltarServers, event_day: EventDay, event: Event) -> queue.Queue:
+    """Get the queue from which the servers must be taken for a given event.
+
+    :param servers: The servers object.
+    :param event_day: The event day.
+    :param event: The event object.
+    :return: The queue from which the servers must be taken.
+    """
     if (
-            event_day.id in servers.regular_queues
-            and event.time in servers.regular_queues[event_day.id]
+        event_day.id in servers.regular_queues
+        and event.time in servers.regular_queues[event_day.id]
     ):
         return servers.regular_queues[event_day.id][event.time]
-    else:
-        return servers.other_queue
+
+    return servers.other_queue

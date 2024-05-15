@@ -52,7 +52,8 @@ def main() -> None:
     logger.info("PDF wird erstellt")
     generate_pdf(calendar, start_date, end_date, plan_info["welcome_text"])
     logger.info("Abgeschlossen")
-    altar_servers.print_distribution()
+    logger.info("Statistik")
+    logger.info(altar_servers.get_distribution())
 
 
 if __name__ == "__main__":

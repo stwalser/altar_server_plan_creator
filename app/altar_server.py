@@ -1,11 +1,10 @@
 """A module that contains the class that represents a server and also contains the wrapper class."""
 
-import logging
 import queue
 import random
 from datetime import datetime
 
-from event_calendar import Event, EventDay, EventCalendar
+from event_calendar import Event, EventCalendar, EventDay
 
 
 class AltarServer:
@@ -98,7 +97,6 @@ class AltarServers:
             for event in event_day.events:
                 self.regular_queues[event_day.id][event.time] = queue.Queue()
                 self.fill_queue_for(event_day, event)
-                print(event, self.regular_queues[event_day.id][event.time].queue)
 
         for altar_server in self.altar_servers:
             self.other_queue.put(altar_server)
@@ -106,18 +104,23 @@ class AltarServers:
         for altar_server in list(filter(lambda x: x.always_high_mass, self.altar_servers)):
             self.high_mass_priority.put(altar_server)
 
-    def print_distribution(self):
-        for server in sorted(self.altar_servers, key=lambda x: x.name):
-            print(server.name, server.number_of_services)
+    def get_distribution(self: "AltarServers") -> list:
+        """Get how often each server was assigned on the plan."""
+        return [
+            (server.name, server.number_of_services)
+            for server in sorted(self.altar_servers, key=lambda x: x.name)
+        ]
 
     def fill_queue_for(self: "AltarServers", event_day: EventDay, event: Event) -> None:
+        """ADd all the servers which are available at the given event to the queue of the mass.
+
+        :param event_day: The event day.
+        :param event: The event.
+        """
         if event_day.id not in self.regular_queues:
             for altar_server in self.altar_servers:
                 self.other_queue.put(altar_server)
         else:
-            print(type(event.time))
-            for server in self.altar_servers:
-                print(server.avoid)
             for altar_server in list(
                 filter(
                     lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
@@ -127,9 +130,15 @@ class AltarServers:
                 self.regular_queues[event_day.id][event.time].put(altar_server)
 
     def choose(self: "AltarServers", server: AltarServer) -> None:
+        """Add a server to the already chosen list.
+
+        If the length of the list equals the number of the servers, the list is cleared.
+        :param server: The server to add to the list.
+        """
         self.already_chosen_this_round.append(server)
         if len(self.already_chosen_this_round) == len(self.altar_servers):
             self.empty_already_chosen_list()
 
-    def empty_already_chosen_list(self):
+    def empty_already_chosen_list(self: "AltarServers") -> None:
+        """Delete all entries from the already chosen list."""
         self.already_chosen_this_round = []

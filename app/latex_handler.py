@@ -4,7 +4,7 @@ from datetime import datetime
 
 from babel.dates import format_date, format_time
 from holy_mass import Day
-from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular, VerticalSpace
+from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular
 from pylatex.utils import bold
 
 TABLE_WIDTH = 4
@@ -63,12 +63,12 @@ def generate_pdf(
     patched_tabular = Tabular("llll", row_height=1.4)
     patched_tabular._latex_name = "supertabular"  # noqa: SLF001
     with doc.create(patched_tabular) as table:
-        fill_document(table, days, doc)
+        fill_document(table, days)
 
     doc.generate_pdf("output/plan", clean_tex=False)
 
 
-def fill_document(table: Tabular, days: list, doc: Document) -> None:
+def fill_document(table: Tabular, days: list) -> None:
     """Add the masses to the document.
 
     :param table: The table containing the masses and servers.
