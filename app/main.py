@@ -36,16 +36,12 @@ def main() -> None:
     raw_event_calendar = load_yaml_file("config/holy_masses.yaml")
     raw_custom_masses = load_yaml_file("config/custom_masses.yaml")
     event_calendar = EventCalendar(raw_event_calendar, raw_custom_masses)
-    altar_servers = AltarServers(raw_altar_servers, event_calendar)
     plan_info = load_yaml_file("config/plan_info.yaml")
 
     start_date = datetime.strptime(plan_info["start_date"], "%d.%m.%Y").astimezone().date()
     end_date = datetime.strptime(plan_info["end_date"], "%d.%m.%Y").astimezone().date()
     logger.info("Abgeschlossen")
 
-    logger.info("Messkalender wird erstellt...")
-    calendar = create_calendar(start_date, end_date, event_calendar)
-    logger.info("Abgeschlossen")
     logger.info("Ministranten werden eingeteilt...")
 
     count = 1
