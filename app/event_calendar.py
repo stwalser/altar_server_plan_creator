@@ -66,7 +66,7 @@ class EventDay:
         elif "easter" in inner["date"]:
             self.date = EASTER_SUNDAY + timedelta(days=int(inner["date"]["easter"]))
         else:
-            self.date = datetime.strptime(inner["date"], "%d.%m.%Y").astimezone().date()
+            self.date = datetime.strptime(inner["date"], "%d.%m.").astimezone().date()
 
         for raw_mass in inner["masses"]:
             self.events.append(Event(raw_mass))

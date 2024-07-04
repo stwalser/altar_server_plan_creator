@@ -1,10 +1,12 @@
 """A module that contains the high level function calls of the altar server plan creator."""
 
 import logging
+import statistics
 import sys
 from datetime import datetime
 from pathlib import Path
 
+from tqdm import tqdm
 import yaml
 from altar_server import AltarServers
 from date_handler import create_calendar
@@ -44,6 +46,34 @@ def main() -> None:
 
     logger.info("Ministranten werden eingeteilt...")
 
+    final_altar_servers, final_calendar = optimize_assignments(end_date, event_calendar,
+                                                               raw_altar_servers, start_date)
+
+    logger.info("Statistik")
+    for server in final_altar_servers.get_distribution():
+        logger.info(server)
+    logger.info("PDF wird erstellt")
+    generate_pdf(final_calendar, start_date, end_date, plan_info["welcome_text"])
+    logger.info("Abgeschlossen")
+
+
+def optimize_assignments(end_date, event_calendar, raw_altar_servers, start_date):
+    final_calendar = None
+    final_altar_servers = None
+    final_variance = 10
+    for _ in tqdm(range(1000)):
+        altar_servers, calendar = assign_servers(end_date, event_calendar, raw_altar_servers,
+                                                 start_date)
+        distribution = [item[1] for item in altar_servers.get_distribution()]
+        variance = statistics.pvariance(distribution)
+        if variance < final_variance:
+            final_altar_servers = altar_servers
+            final_calendar = calendar
+            final_variance = variance
+    return final_altar_servers, final_calendar
+
+
+def assign_servers(end_date, event_calendar, raw_altar_servers, start_date):
     count = 1
     while True:
         altar_servers = AltarServers(raw_altar_servers, event_calendar)
@@ -55,13 +85,7 @@ def main() -> None:
             continue
         break
 
-    logger.info("Abgeschlossen nach %d Versuchen", count)
-    logger.info("Statistik")
-    for server in altar_servers.get_distribution():
-        logger.info(server)
-    logger.info("PDF wird erstellt")
-    generate_pdf(calendar, start_date, end_date, plan_info["welcome_text"])
-    logger.info("Abgeschlossen")
+    return altar_servers, calendar
 
 
 if __name__ == "__main__":
