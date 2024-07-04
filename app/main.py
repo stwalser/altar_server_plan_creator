@@ -61,7 +61,8 @@ def optimize_assignments(end_date, event_calendar, raw_altar_servers, start_date
     final_calendar = None
     final_altar_servers = None
     final_variance = 10
-    for _ in tqdm(range(1000)):
+    iterations = tqdm(total=1000)
+    for _ in range(1000):
         altar_servers, calendar = assign_servers(end_date, event_calendar, raw_altar_servers,
                                                  start_date)
         distribution = [item[1] for item in altar_servers.get_distribution()]
@@ -70,6 +71,10 @@ def optimize_assignments(end_date, event_calendar, raw_altar_servers, start_date
             final_altar_servers = altar_servers
             final_calendar = calendar
             final_variance = variance
+
+        iterations.update(1)
+        print(iterations)
+        sys.stdout.flush()
     return final_altar_servers, final_calendar
 
 
