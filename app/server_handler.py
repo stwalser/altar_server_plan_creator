@@ -111,7 +111,7 @@ def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> A
 
     If the queue for an event is empty, it is refilled. The server is only chosen, if it has not
     been chosen this round. This mechanism is required, because of the sibling mechanism. It is
-    possible that a server was already assigned because of its sibling. The counter ensures that
+    possible that a server was already assigned because of its sibling. The counter ensures that if
     all servers in the queue have been assigned already, the already assigned list is cleared.
     :param servers: Wrapper object of all servers.
     :param day: Holds the information about the day.
@@ -125,7 +125,7 @@ def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> A
             servers.fill_queue_for(day.event_day, mass.event)
         next_server = day_queue.get_nowait()
 
-        if next_server not in servers.already_chosen_this_round:
+        if next_server not in servers.already_chosen_this_round and day.available(next_server):
             break
 
         day_queue.put(next_server)

@@ -1,6 +1,6 @@
 """A module that contains the representation of the holy mass and a calendar day."""
 
-import datetime
+from datetime import datetime
 
 from altar_server import AltarServer
 from event_calendar import Event, EventDay
@@ -52,6 +52,26 @@ class Day:
         :param mass: The mass to add.
         """
         self.masses.append(mass)
+
+    def available(self: "Day", server: AltarServer) -> bool:
+        """Check if a server is available on a given day. Could be unavailable due to vacation.
+
+        :param server: The server to check.
+        :return: True if the server is available, False otherwise.
+        """
+        for element in server.avoid:
+            if isinstance(element, dict) and "long" in element:
+                vacation = element["long"]
+                start = datetime.strptime(vacation["start"], "%d.%m.").astimezone().date()
+                start.replace(year=datetime.now().year)
+                end = datetime.strptime(vacation["end"], "%d.%m.").astimezone().date()
+                end.replace(year=datetime.now().year)
+
+                if start <= self.date <= end:
+                    return False
+
+        return True
+
 
     def __str__(self: "Day") -> str:
         """Return a string representation of the day."""

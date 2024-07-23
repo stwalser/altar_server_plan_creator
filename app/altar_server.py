@@ -34,7 +34,7 @@ class AltarServer:
                     try:
                         time = datetime.strptime(element, "%H:%M").astimezone().time()
                         self.avoid.append(time)
-                    except ValueError:
+                    except (ValueError, TypeError):
                         self.avoid.append(element)
             if "always_high_mass" in inner:
                 self.always_high_mass = True
@@ -67,7 +67,7 @@ class AltarServers:
     """
 
     def __init__(
-        self: "AltarServers", raw_altar_servers: dict, event_calendar: EventCalendar
+            self: "AltarServers", raw_altar_servers: dict, event_calendar: EventCalendar
     ) -> None:
         """Create the altar servers object, which holds the different queues.
 
@@ -122,10 +122,10 @@ class AltarServers:
                 self.other_queue.put(altar_server)
         else:
             for altar_server in list(
-                filter(
-                    lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
-                    self.altar_servers,
-                )
+                    filter(
+                        lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
+                        self.altar_servers,
+                    )
             ):
                 self.regular_queues[event_day.id][event.time].put(altar_server)
 

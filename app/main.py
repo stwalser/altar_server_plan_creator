@@ -6,13 +6,13 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from tqdm import tqdm
 import yaml
 from altar_server import AltarServers
 from date_handler import create_calendar
 from event_calendar import EventCalendar
 from latex_handler import generate_pdf
 from server_handler import BadSituationError, assign_altar_servers
+from tqdm import tqdm
 
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
@@ -57,7 +57,7 @@ def main() -> None:
     logger.info("Abgeschlossen")
 
 
-def optimize_assignments(end_date, event_calendar, raw_altar_servers, start_date):
+def optimize_assignments(end_date, event_calendar, raw_altar_servers, start_date) -> tuple:
     final_calendar = None
     final_altar_servers = None
     final_variance = 10
@@ -73,12 +73,12 @@ def optimize_assignments(end_date, event_calendar, raw_altar_servers, start_date
             final_variance = variance
 
         iterations.update(1)
-        print(iterations)
+        logger.info(iterations)
         sys.stdout.flush()
     return final_altar_servers, final_calendar
 
 
-def assign_servers(end_date, event_calendar, raw_altar_servers, start_date):
+def assign_servers(end_date, event_calendar, raw_altar_servers, start_date) -> tuple:
     count = 1
     while True:
         altar_servers = AltarServers(raw_altar_servers, event_calendar)
