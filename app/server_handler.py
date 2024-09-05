@@ -34,12 +34,12 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
                 chosen_server = get_server_from_queues(servers, day, mass)
                 if chosen_server.has_siblings():
                     if all(
-                        is_available(servers, sibling, day, mass)
-                        for sibling in chosen_server.siblings
+                            is_available(servers, sibling, day, mass)
+                            for sibling in chosen_server.siblings
                     ):
                         if (
-                            n_servers_assigned + len(chosen_server.siblings) + 1
-                            <= mass.event.n_servers
+                                n_servers_assigned + len(chosen_server.siblings) + 1
+                                <= mass.event.n_servers
                         ):
                             n_servers_assigned += assign_single_server(chosen_server, mass, servers)
                             for sibling in chosen_server.siblings:
@@ -51,7 +51,7 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
 
 
 def is_available(
-    servers: AltarServers, chosen_server: AltarServer, day: Day, mass: HolyMass
+        servers: AltarServers, chosen_server: AltarServer, day: Day, mass: HolyMass
 ) -> bool:
     """Check if a server is available at a certain mass.
 
@@ -66,9 +66,8 @@ def is_available(
     return chosen_server in list(day_queue.queue)
 
 
-def assign_high_mass_priority_servers(
-    mass: HolyMass, n_servers_assigned: int, servers: AltarServers
-) -> int:
+def assign_high_mass_priority_servers(mass: HolyMass, n_servers_assigned: int,
+                                      servers: AltarServers) -> int:
     """Assign servers to a mass that are prioritized for high masses.
 
     :param mass: The holy mass.
@@ -146,8 +145,8 @@ def get_queue_for_event(servers: AltarServers, event_day: EventDay, event: Event
     :return: The queue from which the servers must be taken.
     """
     if (
-        event_day.id in servers.regular_queues
-        and event.time in servers.regular_queues[event_day.id]
+            event_day.id in servers.regular_queues
+            and event.time in servers.regular_queues[event_day.id]
     ):
         return servers.regular_queues[event_day.id][event.time]
 

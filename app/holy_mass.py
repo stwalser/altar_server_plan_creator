@@ -63,9 +63,9 @@ class Day:
             if isinstance(element, dict) and "long" in element:
                 vacation = element["long"]
                 start = datetime.strptime(vacation["start"], "%d.%m.").astimezone().date()
-                start.replace(year=datetime.now().year)
+                start.replace(year=datetime.now().astimezone().year)
                 end = datetime.strptime(vacation["end"], "%d.%m.").astimezone().date()
-                end.replace(year=datetime.now().year)
+                end.replace(year=datetime.now().astimezone().year)
 
                 if start <= self.date <= end:
                     return False

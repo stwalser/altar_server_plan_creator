@@ -15,7 +15,6 @@ from server_handler import BadSituationError, assign_altar_servers
 from tqdm import tqdm
 
 TOTAL_OPTIMIZE_ROUNDS = 1000
-
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 
@@ -59,7 +58,17 @@ def main() -> None:
     logger.info("Abgeschlossen")
 
 
-def optimize_assignments(end_date, event_calendar, raw_altar_servers, start_date) -> tuple:
+def optimize_assignments(end_date: datetime.date, event_calendar: EventCalendar,
+                         raw_altar_servers: dict, start_date: datetime.date) -> tuple:
+    """Create multiple plans until keep the one with the lowest variance in number of services.
+
+    :param end_date: The last date of the plan.
+    :param event_calendar: The event calendar.
+    :param raw_altar_servers: The raw altar server dictionary.
+    :param start_date: The first date of the plan.
+    :return: The resulting altar servers object and the calendar object with all alter servers
+    assigned.
+    """
     final_calendar = None
     final_altar_servers = None
     final_variance = 10
@@ -80,15 +89,22 @@ def optimize_assignments(end_date, event_calendar, raw_altar_servers, start_date
     return final_altar_servers, final_calendar
 
 
-def assign_servers(end_date, event_calendar, raw_altar_servers, start_date) -> tuple:
-    count = 1
+def assign_servers(end_date: datetime.date, event_calendar: EventCalendar, raw_altar_servers: dict,
+                   start_date: datetime.date) -> tuple:
+    """Create a single plan by assigning servers until all masses are covered.
+
+    :param end_date: The last date of the plan.
+    :param event_calendar: The event calendar.
+    :param raw_altar_servers: The raw altar server dictionary.
+    :param start_date: The first date of the plan.
+    :return:
+    """
     while True:
         altar_servers = AltarServers(raw_altar_servers, event_calendar)
         calendar = create_calendar(start_date, end_date, event_calendar)
         try:
             assign_altar_servers(calendar, altar_servers)
         except BadSituationError:
-            count += 1
             continue
         break
 
