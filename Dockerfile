@@ -6,5 +6,8 @@ COPY requirements.txt ./
 RUN pip3 install -r requirements.txt
 
 COPY app/ .
+RUN mkdir "config"
 
-ENTRYPOINT ["python3", "main.py"]
+EXPOSE 5000
+
+ENTRYPOINT ["gunicorn", "web:app", "-b", "0.0.0.0:5000"]

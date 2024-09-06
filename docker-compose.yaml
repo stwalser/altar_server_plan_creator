@@ -5,3 +5,5 @@ services:
     volumes:
       - ./config:/config
       - ./output:/output
+    ports:
+      - "5000:5000"
