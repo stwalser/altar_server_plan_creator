@@ -32,22 +32,42 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
 
             while n_servers_assigned < mass.event.n_servers:
                 chosen_server = get_server_from_queues(servers, day, mass)
-                if chosen_server.has_siblings():
-                    if all(
-                            is_available(servers, sibling, day, mass)
-                            for sibling in chosen_server.siblings
-                    ):
-                        if (
-                                n_servers_assigned + len(chosen_server.siblings) + 1
-                                <= mass.event.n_servers
+                if server_not_assigned_this_day(chosen_server, day) and (
+                        mass.event.location is None or mass.event.location in
+                        chosen_server.locations):
+                    if chosen_server.has_siblings():
+                        if all(
+                                is_available(servers, sibling, day, mass)
+                                for sibling in chosen_server.siblings
                         ):
-                            n_servers_assigned += assign_single_server(chosen_server, mass, servers)
-                            for sibling in chosen_server.siblings:
-                                n_servers_assigned += assign_single_server(sibling, mass, servers)
-                        else:
-                            raise BadSituationError
-                else:
-                    n_servers_assigned += assign_single_server(chosen_server, mass, servers)
+                            if (
+                                    n_servers_assigned + len(chosen_server.siblings) + 1
+                                    <= mass.event.n_servers
+                            ):
+                                n_servers_assigned += assign_single_server(chosen_server, mass,
+                                                                           servers)
+                                for sibling in chosen_server.siblings:
+                                    n_servers_assigned += assign_single_server(sibling, mass,
+                                                                               servers)
+                            else:
+                                raise BadSituationError
+                    else:
+                        n_servers_assigned += assign_single_server(chosen_server, mass, servers)
+
+
+def server_not_assigned_this_day(chosen_server, day):
+    """Check if a server has been assigned on this day already.
+
+    That can be due to high-priority assignments or custom masses that take place on the same day as
+    normal masses.
+    :param chosen_server: The chosen server.
+    :param day: The day to check.
+    :return: True, if the server has not been assigned on this day yet. False otherwise.
+    """
+    for mass in day.masses:
+        if chosen_server in mass.servers:
+            return False
+    return True
 
 
 def is_available(
