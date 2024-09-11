@@ -112,15 +112,15 @@ class AltarServers:
         ]
 
     def fill_queue_for(self: "AltarServers", event_day: EventDay, event: Event) -> None:
-        """ADd all the servers which are available at the given event to the queue of the mass.
+        """Add all the servers which are available at the given event to the queue of the mass.
 
         :param event_day: The event day.
         :param event: The event.
         """
-        if event_day.id not in self.regular_queues:
-            for altar_server in self.altar_servers:
-                self.other_queue.put(altar_server)
-        else:
+        if (
+                event_day.id in self.regular_queues
+                and event.time in self.regular_queues[event_day.id]
+        ):
             for altar_server in list(
                     filter(
                         lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
@@ -128,6 +128,18 @@ class AltarServers:
                     )
             ):
                 self.regular_queues[event_day.id][event.time].put(altar_server)
+        elif event.time in self.regular_queues["SUNDAY"]:
+            for altar_server in list(
+                    filter(
+                        lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
+                        self.altar_servers,
+                    )
+            ):
+                self.regular_queues["SUNDAY"][event.time].put(altar_server)
+
+        else:
+            for altar_server in self.altar_servers:
+                self.other_queue.put(altar_server)
 
     def choose(self: "AltarServers", server: AltarServer) -> None:
         """Add a server to the already chosen list.
