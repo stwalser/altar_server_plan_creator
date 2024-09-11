@@ -20,7 +20,7 @@ class Event:
         self.time = datetime.strptime(time_string, "%H:%M").astimezone().time()
         self.comment = ""
         self.high_mass = False
-        self.location = ""
+        self.location = None
 
         inner = raw_mass[time_string]
 
@@ -67,6 +67,7 @@ class EventDay:
             self.date = EASTER_SUNDAY + timedelta(days=int(inner["date"]["easter"]))
         else:
             self.date = datetime.strptime(inner["date"], "%d.%m.").astimezone().date()
+            self.date = self.date.replace(year=datetime.now().year)
 
         for raw_mass in inner["masses"]:
             self.events.append(Event(raw_mass))
@@ -91,7 +92,6 @@ class EventCalendar:
         """
         self.weekday_events = {}
         self.irregular_events = {}
-        self.additional_events = {}
         for raw_event_day in raw_event_calendar:
             event_day = EventDay(raw_event_day)
             if event_day.weekday is not None:
@@ -105,13 +105,6 @@ class EventCalendar:
                 self.irregular_events[event_day.date].events += event_day.events
             else:
                 self.irregular_events[event_day.date] = event_day
-                if event_day.date.weekday() in self.weekday_events:
-                    self.irregular_events[event_day.date].events += self.weekday_events[
-                        event_day.date.weekday()
-                    ].events
-                    self.irregular_events[event_day.date].id = self.weekday_events[
-                        event_day.date.weekday()
-                    ].id
 
     def get_event_day_by_date(self: "EventCalendar", date: datetime.date) -> EventDay | None:
         """Get the event day object if there are any events on a specific date.
