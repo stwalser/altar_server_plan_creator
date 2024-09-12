@@ -106,6 +106,9 @@ def assign_servers(calendar: list, altar_servers: AltarServers) -> None:
             continue
         break
 
+    clear_calendar(calendar)
+    altar_servers.clear_state()
+
 
 if __name__ == "__main__":
     main()
