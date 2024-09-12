@@ -147,8 +147,6 @@ def get_server_from_queues(servers: AltarServers, day: Day, mass: HolyMass) -> A
         if next_server not in servers.already_chosen_this_round and day.available(next_server):
             break
 
-        day_queue.put(next_server)
-
         count += 1
         if count > len(day_queue.queue):
             servers.empty_already_chosen_list()

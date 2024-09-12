@@ -87,29 +87,48 @@ class AltarServers:
                 altar_server.siblings = object_list
 
         self.regular_queues = {}
-        self.other_queue = queue.Queue()
-        self.high_mass_priority = queue.Queue()
+        self.regular_queues_cache = {}
+        self.other_queue = queue.Queue()  # All servers get refilled
+        self.high_mass_priority = queue.Queue()  # Doesn't get empty -> No refill
 
         self.already_chosen_this_round = []
 
         for event_day in event_calendar.weekday_events.values():
             self.regular_queues[event_day.id] = {}
+            self.regular_queues_cache[event_day.id] = {}
             for event in event_day.events:
                 self.regular_queues[event_day.id][event.time] = queue.Queue()
+                self.regular_queues_cache[event_day.id][event.time] = self.get_available_servers(
+                    event_day, event)
                 self.fill_queue_for(event_day, event)
 
-        for altar_server in self.altar_servers:
-            self.other_queue.put(altar_server)
+        self.list_to_queue(self.altar_servers, self.other_queue)
 
         for altar_server in list(filter(lambda x: x.always_high_mass, self.altar_servers)):
             self.high_mass_priority.put(altar_server)
 
-    def get_distribution(self: "AltarServers") -> list:
-        """Get how often each server was assigned on the plan."""
-        return [
-            (server.name, server.number_of_services)
-            for server in sorted(self.altar_servers, key=lambda x: x.name)
-        ]
+    def clear_queues(self: "AltarServers") -> None:
+        self.already_chosen_this_round = []
+
+        self.other_queue = queue.Queue()
+        self.list_to_queue(self.altar_servers, self.other_queue)
+
+        for id in self.regular_queues:
+            for time in self.regular_queues[id]:
+                self.regular_queues[id][time] = queue.Queue()
+                random.shuffle(self.regular_queues_cache[id][time])
+                self.list_to_queue(self.regular_queues_cache[id][time], self.regular_queues[id][time])
+
+        for server in self.altar_servers:
+            server.number_of_services = 0
+
+    def get_available_servers(self, event_day: EventDay, event: Event) -> list:
+        return list(
+            filter(
+                lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
+                self.altar_servers,
+            )
+        )
 
     def fill_queue_for(self: "AltarServers", event_day: EventDay, event: Event) -> None:
         """Add all the servers which are available at the given event to the queue of the mass.
@@ -121,25 +140,17 @@ class AltarServers:
                 event_day.id in self.regular_queues
                 and event.time in self.regular_queues[event_day.id]
         ):
-            for altar_server in list(
-                    filter(
-                        lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
-                        self.altar_servers,
-                    )
-            ):
+            for altar_server in self.regular_queues_cache[event_day.id][event.time]:
                 self.regular_queues[event_day.id][event.time].put(altar_server)
         elif event.time in self.regular_queues["SUNDAY"]:
-            for altar_server in list(
-                    filter(
-                        lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
-                        self.altar_servers,
-                    )
-            ):
+            for altar_server in self.regular_queues_cache["SUNDAY"][event.time]:
                 self.regular_queues["SUNDAY"][event.time].put(altar_server)
-
         else:
-            for altar_server in self.altar_servers:
-                self.other_queue.put(altar_server)
+            self.list_to_queue(self.altar_servers, self.other_queue)
+
+    def list_to_queue(self, altar_servers: list, queue: queue.Queue) -> None:
+        for altar_server in altar_servers:
+            queue.put(altar_server)
 
     def choose(self: "AltarServers", server: AltarServer) -> None:
         """Add a server to the already chosen list.
@@ -154,3 +165,11 @@ class AltarServers:
     def empty_already_chosen_list(self: "AltarServers") -> None:
         """Delete all entries from the already chosen list."""
         self.already_chosen_this_round = []
+
+
+def get_distribution(altar_servers: list) -> list:
+    """Get how often each server was assigned on the plan."""
+    return [
+        (server.name, server.number_of_services)
+        for server in sorted(altar_servers, key=lambda x: x.name)
+    ]

@@ -1,5 +1,5 @@
 """A module that contains the high level function calls of the altar server plan creator."""
-
+import copy
 import logging
 import statistics
 import sys
@@ -7,8 +7,8 @@ from datetime import datetime
 from pathlib import Path
 
 import yaml
-from altar_server import AltarServers
-from date_handler import create_calendar
+from altar_server import AltarServers, get_distribution
+from date_handler import create_calendar, clear_calendar
 from event_calendar import EventCalendar
 from latex_handler import generate_pdf
 from server_handler import BadSituationError, assign_altar_servers
@@ -43,44 +43,45 @@ def main() -> None:
 
     start_date = datetime.strptime(plan_info["start_date"], "%d.%m.%Y").astimezone().date()
     end_date = datetime.strptime(plan_info["end_date"], "%d.%m.%Y").astimezone().date()
+
+    logger.info("Kalender wird erstellet...")
+    calendar = create_calendar(start_date, end_date, event_calendar)
+    logger.info("Abgeschlossen")
+    logger.info("Ministranten werden erstellet...")
+    altar_servers = AltarServers(raw_altar_servers, event_calendar)
     logger.info("Abgeschlossen")
 
     logger.info("Ministranten werden eingeteilt...")
 
-    final_altar_servers, final_calendar = optimize_assignments(end_date, event_calendar,
-                                                               raw_altar_servers, start_date)
+    final_altar_servers, final_calendar = optimize_assignments(calendar, altar_servers)
 
     logger.info("Statistik")
-    for server in final_altar_servers.get_distribution():
+    for server in get_distribution(final_altar_servers):
         logger.info(server)
     logger.info("PDF wird erstellt")
     generate_pdf(final_calendar, start_date, end_date, plan_info["welcome_text"])
     logger.info("Abgeschlossen")
 
 
-def optimize_assignments(end_date: datetime.date, event_calendar: EventCalendar,
-                         raw_altar_servers: dict, start_date: datetime.date) -> tuple:
+def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
     """Create multiple plans until keep the one with the lowest variance in number of services.
 
-    :param end_date: The last date of the plan.
-    :param event_calendar: The event calendar.
-    :param raw_altar_servers: The raw altar server dictionary.
-    :param start_date: The first date of the plan.
-    :return: The resulting altar servers object and the calendar object with all alter servers
+    :param calendar: The calendar.
+    :param altar_servers: The raw altar server dictionary.
+    :return: The resulting altar servers object and the calendar object with all altar servers
     assigned.
     """
     final_calendar = None
     final_altar_servers = None
-    final_variance = 10
+    final_variance = 100
     iterations = tqdm(total=TOTAL_OPTIMIZE_ROUNDS)
     for _ in range(TOTAL_OPTIMIZE_ROUNDS):
-        altar_servers, calendar = assign_servers(end_date, event_calendar, raw_altar_servers,
-                                                 start_date)
-        distribution = [item[1] for item in altar_servers.get_distribution()]
+        assign_servers(calendar, altar_servers)
+        distribution = [item[1] for item in get_distribution(altar_servers.altar_servers)]
         variance = statistics.pvariance(distribution)
         if variance < final_variance:
-            final_altar_servers = altar_servers
-            final_calendar = calendar
+            final_altar_servers = copy.deepcopy(altar_servers.altar_servers)
+            final_calendar = copy.deepcopy(calendar)
             final_variance = variance
 
         iterations.update(1)
@@ -89,26 +90,20 @@ def optimize_assignments(end_date: datetime.date, event_calendar: EventCalendar,
     return final_altar_servers, final_calendar
 
 
-def assign_servers(end_date: datetime.date, event_calendar: EventCalendar, raw_altar_servers: dict,
-                   start_date: datetime.date) -> tuple:
+def assign_servers(calendar: list, altar_servers: AltarServers) -> None:
     """Create a single plan by assigning servers until all masses are covered.
 
-    :param end_date: The last date of the plan.
-    :param event_calendar: The event calendar.
-    :param raw_altar_servers: The raw altar server dictionary.
-    :param start_date: The first date of the plan.
-    :return:
+    :param calendar: The event calendar.
+    :param altar_servers: The altar servers object.
     """
     while True:
-        altar_servers = AltarServers(raw_altar_servers, event_calendar)
-        calendar = create_calendar(start_date, end_date, event_calendar)
         try:
             assign_altar_servers(calendar, altar_servers)
         except BadSituationError:
+            clear_calendar(calendar)
+            altar_servers.clear_queues()
             continue
         break
-
-    return altar_servers, calendar
 
 
 if __name__ == "__main__":

@@ -27,6 +27,12 @@ def create_calendar(
     return calendar
 
 
+def clear_calendar(calendar: list):
+    for day in calendar:
+        for mass in day.masses:
+            mass.servers = []
+
+
 def create_calendar_day(date: datetime.time, event_day: EventDay) -> Day:
     """Create a calendar day object for an event day object.
 
