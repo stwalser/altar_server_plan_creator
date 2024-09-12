@@ -1,4 +1,5 @@
 """A module that contains the high level function calls of the altar server plan creator."""
+
 import copy
 import logging
 import statistics
@@ -7,14 +8,14 @@ from datetime import datetime
 from pathlib import Path
 
 import yaml
-from altar_server import AltarServers, get_distribution
+from altar_servers import AltarServers, get_distribution
 from date_handler import clear_calendar, create_calendar
 from event_calendar import EventCalendar
 from latex_handler import generate_pdf
 from server_handler import BadSituationError, assign_altar_servers
 from tqdm import tqdm
 
-TOTAL_OPTIMIZE_ROUNDS = 10
+TOTAL_OPTIMIZE_ROUNDS = 1000
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 

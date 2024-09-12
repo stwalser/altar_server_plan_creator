@@ -20,8 +20,9 @@ class Plan(Document):
         :param end_date: End date of the plan.
         """
         super().__init__(
-            indent=False, geometry_options=["a4paper", "margin=1in", "landscape",
-                                            "twocolumn"], font_size="large"
+            indent=False,
+            geometry_options=["a4paper", "margin=1in", "landscape", "twocolumn"],
+            font_size="large",
         )
 
         self.preamble.append(Command("usepackage", "supertabular"))

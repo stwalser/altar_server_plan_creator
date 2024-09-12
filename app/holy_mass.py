@@ -70,6 +70,15 @@ class Day:
 
         return True
 
+    def server_not_assigned(self: "Day", chosen_server: AltarServer) -> bool:
+        """Check if a server has been assigned on this day already.
+
+        That can be due to high-priority assignments or custom masses that take place on the same day as
+        normal masses.
+        :param chosen_server: The server to check.
+        :return: True, if the server has not been assigned on this day yet. False otherwise.
+        """
+        return not any(chosen_server in mass.servers for mass in self.masses)
 
     def __str__(self: "Day") -> str:
         """Return a string representation of the day."""
