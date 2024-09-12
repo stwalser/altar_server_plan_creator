@@ -170,8 +170,7 @@ class AltarServers:
         :return: 1 to increase the counter.
         """
         mass.add_server(chosen_server)
-        self.choose(chosen_server)
-        chosen_server.number_of_services += 1
+        self.__choose(chosen_server)
         return 1
 
     def assign_high_mass_priority_servers(
@@ -194,8 +193,7 @@ class AltarServers:
             mass.add_server(chosen_server)
             self.high_mass_priority.append(chosen_server)
             n_servers_assigned += 1
-            chosen_server.number_of_services += 1
-            self.choose(chosen_server)
+            self.__choose(chosen_server)
         return n_servers_assigned
 
     def get_server_from_queues(self: "AltarServers", day: Day, mass: HolyMass) -> AltarServer:
@@ -228,19 +226,20 @@ class AltarServers:
 
             count += 1
             if count > len(day_queue):
-                self.empty_already_chosen_list()
+                self.__empty_already_chosen_list()
 
         return next_server
 
-    def choose(self: "AltarServers", server: AltarServer) -> None:
+    def __choose(self: "AltarServers", server: AltarServer) -> None:
         """Add a server to the already chosen list.
 
         If the length of the list equals the number of the servers, the list is cleared.
         :param server: The server to add to the list.
         """
+        server.number_of_services += 1
         self.already_chosen_this_round.append(server)
         if len(self.already_chosen_this_round) == len(self.altar_servers):
-            self.empty_already_chosen_list()
+            self.__empty_already_chosen_list()
 
     def is_available(
         self: "AltarServers", chosen_server: AltarServer, day: Day, mass: HolyMass
@@ -260,6 +259,6 @@ class AltarServers:
         except ValueError:
             return False
 
-    def empty_already_chosen_list(self: "AltarServers") -> None:
+    def __empty_already_chosen_list(self: "AltarServers") -> None:
         """Delete all entries from the already chosen list."""
         self.already_chosen_this_round = []

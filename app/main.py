@@ -15,7 +15,7 @@ from latex_handler import generate_pdf
 from server_handler import BadSituationError, assign_altar_servers
 from tqdm import tqdm
 
-TOTAL_OPTIMIZE_ROUNDS = 10
+TOTAL_OPTIMIZE_ROUNDS = 100
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 
