@@ -57,6 +57,11 @@ class AltarServer:
         return str(self.name)
 
 
+def list_to_queue(altar_servers: list, queue: queue.Queue) -> None:
+    for altar_server in altar_servers:
+        queue.put(altar_server)
+
+
 class AltarServers:
     """The altar server class contains the queues that manage the servers.
 
@@ -76,8 +81,39 @@ class AltarServers:
         self.altar_servers = [
             AltarServer(raw_altar_server) for raw_altar_server in raw_altar_servers
         ]
+        self.__add_siblings_to_objects()
+
+        self.regular_queues = {}
+        self.regular_queues_cache = {}
+
+        for event_day in event_calendar.weekday_events.values():
+            self.regular_queues[event_day.id] = {}
+            self.regular_queues_cache[event_day.id] = {}
+            for event in event_day.events:
+                self.regular_queues[event_day.id][event.time] = queue.Queue()
+                self.regular_queues_cache[event_day.id][event.time] = []
+
+        self.shuffle_and_rebuild_cache()
+
+        self.other_queue = queue.Queue()  # All servers get refilled
+        self.fill_all_refillable_queues()
+
+        self.high_mass_priority = queue.Queue()  # Doesn't get empty -> No refill
+        list_to_queue(list(filter(lambda x: x.always_high_mass, self.altar_servers)),
+                      self.high_mass_priority)
+
+        self.already_chosen_this_round = []
+
+    def shuffle_and_rebuild_cache(self):
         random.shuffle(self.altar_servers)
 
+        for event_id in self.regular_queues:
+            for time in self.regular_queues[event_id]:
+                self.regular_queues[event_id][time] = queue.Queue()
+                self.regular_queues_cache[event_id][time] = self.get_available_servers(event_id,
+                                                                                       time)
+
+    def __add_siblings_to_objects(self):
         for altar_server in self.altar_servers:
             if altar_server.has_siblings():
                 object_list = [
@@ -86,48 +122,28 @@ class AltarServers:
                 ]
                 altar_server.siblings = object_list
 
-        self.regular_queues = {}
-        self.regular_queues_cache = {}
-        self.other_queue = queue.Queue()  # All servers get refilled
-        self.high_mass_priority = queue.Queue()  # Doesn't get empty -> No refill
-
+    def clear_state(self: "AltarServers") -> None:
         self.already_chosen_this_round = []
-
-        for event_day in event_calendar.weekday_events.values():
-            self.regular_queues[event_day.id] = {}
-            self.regular_queues_cache[event_day.id] = {}
-            for event in event_day.events:
-                self.regular_queues[event_day.id][event.time] = queue.Queue()
-                self.regular_queues_cache[event_day.id][event.time] = self.get_available_servers(
-                    event_day, event)
-                self.fill_queue_for(event_day, event)
-
-        self.list_to_queue(self.altar_servers, self.other_queue)
-
-        for altar_server in list(filter(lambda x: x.always_high_mass, self.altar_servers)):
-            self.high_mass_priority.put(altar_server)
-
-    def clear_queues(self: "AltarServers") -> None:
-        self.already_chosen_this_round = []
-
-        self.other_queue = queue.Queue()
-        self.list_to_queue(self.altar_servers, self.other_queue)
-
-        for id in self.regular_queues:
-            for time in self.regular_queues[id]:
-                self.regular_queues[id][time] = queue.Queue()
-                random.shuffle(self.regular_queues_cache[id][time])
-                self.list_to_queue(self.regular_queues_cache[id][time], self.regular_queues[id][time])
 
         for server in self.altar_servers:
             server.number_of_services = 0
 
-    def get_available_servers(self, event_day: EventDay, event: Event) -> list:
+        self.shuffle_and_rebuild_cache()
+        self.fill_all_refillable_queues()
+
+    def fill_all_refillable_queues(self):
+        self.other_queue = queue.Queue()
+        list_to_queue(self.altar_servers, self.other_queue)
+
+        for event_id in self.regular_queues:
+            for time in self.regular_queues[event_id]:
+                self.regular_queues[event_id][time] = queue.Queue()
+                list_to_queue(self.regular_queues_cache[event_id][time],
+                              self.regular_queues[event_id][time])
+
+    def get_available_servers(self, event_id: str, time: datetime.time) -> list:
         return list(
-            filter(
-                lambda x: event_day.id not in x.avoid and event.time not in x.avoid,
-                self.altar_servers,
-            )
+            filter(lambda x: event_id not in x.avoid and time not in x.avoid, self.altar_servers, )
         )
 
     def fill_queue_for(self: "AltarServers", event_day: EventDay, event: Event) -> None:
@@ -140,17 +156,13 @@ class AltarServers:
                 event_day.id in self.regular_queues
                 and event.time in self.regular_queues[event_day.id]
         ):
-            for altar_server in self.regular_queues_cache[event_day.id][event.time]:
-                self.regular_queues[event_day.id][event.time].put(altar_server)
+            list_to_queue(self.regular_queues_cache[event_day.id][event.time],
+                          self.regular_queues[event_day.id][event.time])
         elif event.time in self.regular_queues["SUNDAY"]:
-            for altar_server in self.regular_queues_cache["SUNDAY"][event.time]:
-                self.regular_queues["SUNDAY"][event.time].put(altar_server)
+            list_to_queue(self.regular_queues_cache["SUNDAY"][event.time],
+                          self.regular_queues["SUNDAY"][event.time])
         else:
-            self.list_to_queue(self.altar_servers, self.other_queue)
-
-    def list_to_queue(self, altar_servers: list, queue: queue.Queue) -> None:
-        for altar_server in altar_servers:
-            queue.put(altar_server)
+            list_to_queue(self.altar_servers, self.other_queue)
 
     def choose(self: "AltarServers", server: AltarServer) -> None:
         """Add a server to the already chosen list.
