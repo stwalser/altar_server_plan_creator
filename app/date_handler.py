@@ -27,7 +27,11 @@ def create_calendar(
     return calendar
 
 
-def clear_calendar(calendar: list):
+def clear_calendar(calendar: list) -> None:
+    """Remove the assigned servers from the calendar.
+
+    :param calendar: The calendar to clear.
+    """
     for day in calendar:
         for mass in day.masses:
             mass.servers = []

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 from altar_server import AltarServers, get_distribution
-from date_handler import create_calendar, clear_calendar
+from date_handler import clear_calendar, create_calendar
 from event_calendar import EventCalendar
 from latex_handler import generate_pdf
 from server_handler import BadSituationError, assign_altar_servers

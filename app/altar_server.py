@@ -57,9 +57,10 @@ class AltarServer:
         return str(self.name)
 
 
-def list_to_queue(altar_servers: list, queue: queue.Queue) -> None:
+def list_to_queue(altar_servers: list, collection: queue.Queue) -> None:
+    """Add all elements fromo the list to a queue."""
     for altar_server in altar_servers:
-        queue.put(altar_server)
+        collection.put(altar_server)
 
 
 class AltarServers:
@@ -93,10 +94,10 @@ class AltarServers:
                 self.regular_queues[event_day.id][event.time] = queue.Queue()
                 self.regular_queues_cache[event_day.id][event.time] = []
 
-        self.shuffle_and_rebuild_cache()
+        self.__shuffle_and_rebuild_cache()
 
         self.other_queue = queue.Queue()  # All servers get refilled
-        self.fill_all_refillable_queues()
+        self.__fill_all_refillable_queues()
 
         self.high_mass_priority = queue.Queue()  # Doesn't get empty -> No refill
         list_to_queue(list(filter(lambda x: x.always_high_mass, self.altar_servers)),
@@ -104,16 +105,23 @@ class AltarServers:
 
         self.already_chosen_this_round = []
 
-    def shuffle_and_rebuild_cache(self):
+    def __shuffle_and_rebuild_cache(self: "AltarServers") -> None:
+        """Shuffle the altar server list and rebuild the cache.
+
+        This is done to maintain an order over the different queues. The alternative
+        would be to shuffle before assigning the servers to the individual queues, but then some
+        could be assigned in rapid succession. This way we are keeping rounds of assignments.
+        """
         random.shuffle(self.altar_servers)
 
         for event_id in self.regular_queues:
             for time in self.regular_queues[event_id]:
                 self.regular_queues[event_id][time] = queue.Queue()
-                self.regular_queues_cache[event_id][time] = self.get_available_servers(event_id,
-                                                                                       time)
+                self.regular_queues_cache[event_id][time] = self.__get_available_servers(event_id,
+                                                                                         time)
 
-    def __add_siblings_to_objects(self):
+    def __add_siblings_to_objects(self: "AltarServers") -> None:
+        """Get the sibling objects from the list and add them to the individual sibling lists."""
         for altar_server in self.altar_servers:
             if altar_server.has_siblings():
                 object_list = [
@@ -122,16 +130,8 @@ class AltarServers:
                 ]
                 altar_server.siblings = object_list
 
-    def clear_state(self: "AltarServers") -> None:
-        self.already_chosen_this_round = []
-
-        for server in self.altar_servers:
-            server.number_of_services = 0
-
-        self.shuffle_and_rebuild_cache()
-        self.fill_all_refillable_queues()
-
-    def fill_all_refillable_queues(self):
+    def __fill_all_refillable_queues(self: "AltarServers") -> None:
+        """Take the servers from the cache and assign them to the individual queues."""
         self.other_queue = queue.Queue()
         list_to_queue(self.altar_servers, self.other_queue)
 
@@ -141,10 +141,21 @@ class AltarServers:
                 list_to_queue(self.regular_queues_cache[event_id][time],
                               self.regular_queues[event_id][time])
 
-    def get_available_servers(self, event_id: str, time: datetime.time) -> list:
+    def __get_available_servers(self: "AltarServers", event_id: str, time: datetime.time) -> list:
         return list(
-            filter(lambda x: event_id not in x.avoid and time not in x.avoid, self.altar_servers, )
+            filter(lambda x: event_id not in x.avoid and time not in x.avoid, self.altar_servers )
         )
+
+    def clear_state(self: "AltarServers") -> None:
+        """Remove all information in the object that is added during one round."""
+        self.already_chosen_this_round = []
+
+        for server in self.altar_servers:
+            server.number_of_services = 0
+
+        self.__shuffle_and_rebuild_cache()
+        self.__fill_all_refillable_queues()
+
 
     def fill_queue_for(self: "AltarServers", event_day: EventDay, event: Event) -> None:
         """Add all the servers which are available at the given event to the queue of the mass.

@@ -55,7 +55,7 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
                         n_servers_assigned += assign_single_server(chosen_server, mass, servers)
 
 
-def server_not_assigned_this_day(chosen_server, day):
+def server_not_assigned_this_day(chosen_server: AltarServer, day: Day) -> bool:
     """Check if a server has been assigned on this day already.
 
     That can be due to high-priority assignments or custom masses that take place on the same day as
@@ -64,10 +64,7 @@ def server_not_assigned_this_day(chosen_server, day):
     :param day: The day to check.
     :return: True, if the server has not been assigned on this day yet. False otherwise.
     """
-    for mass in day.masses:
-        if chosen_server in mass.servers:
-            return False
-    return True
+    return not any(chosen_server in mass.servers for mass in day.masses)
 
 
 def is_available(
@@ -167,7 +164,8 @@ def get_queue_for_event(servers: AltarServers, event_day: EventDay, event: Event
             and event.time in servers.regular_queues[event_day.id]
     ):
         return servers.regular_queues[event_day.id][event.time]
-    elif event.time in servers.regular_queues["SUNDAY"]:
+
+    if event.time in servers.regular_queues["SUNDAY"]:
         return servers.regular_queues["SUNDAY"][event.time]
 
     return servers.other_queue
