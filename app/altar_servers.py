@@ -1,6 +1,6 @@
 """A module that contains the altar server wrapper class."""
 
-import queue
+from collections import deque
 import random
 from datetime import datetime
 
@@ -9,10 +9,10 @@ from event_calendar import EventCalendar, EventDay, Event
 from holy_mass import HolyMass, Day
 
 
-def list_to_queue(altar_servers: list, collection: queue.Queue) -> None:
+def list_to_queue(altar_servers: list, collection: deque) -> None:
     """Add all elements fromo the list to a queue."""
     for altar_server in altar_servers:
-        collection.put(altar_server)
+        collection.append(altar_server)
 
 
 def get_distribution(altar_servers: list) -> list:
@@ -51,15 +51,15 @@ class AltarServers:
             self.__regular_queues[event_day.id] = {}
             self.__regular_queues_cache[event_day.id] = {}
             for event in event_day.events:
-                self.__regular_queues[event_day.id][event.time] = queue.Queue()
+                self.__regular_queues[event_day.id][event.time] = deque()
                 self.__regular_queues_cache[event_day.id][event.time] = []
 
         self.__shuffle_and_rebuild_cache()
 
-        self.__other_queue = queue.Queue()  # All servers get refilled
+        self.__other_queue = deque()  # All servers get refilled
         self.__fill_all_refillable_queues()
 
-        self.high_mass_priority = queue.Queue()  # Doesn't get empty -> No refill
+        self.high_mass_priority = deque()  # Doesn't get empty -> No refill
         list_to_queue(
             list(filter(lambda x: x.always_high_mass, self.altar_servers)), self.high_mass_priority
         )
@@ -77,7 +77,7 @@ class AltarServers:
 
         for event_id in self.__regular_queues:
             for time in self.__regular_queues[event_id]:
-                self.__regular_queues[event_id][time] = queue.Queue()
+                self.__regular_queues[event_id][time].clear()
                 self.__regular_queues_cache[event_id][time] = self.__get_available_servers(
                     event_id, time
                 )
@@ -94,12 +94,12 @@ class AltarServers:
 
     def __fill_all_refillable_queues(self: "AltarServers") -> None:
         """Take the servers from the cache and assign them to the individual queues."""
-        self.__other_queue = queue.Queue()
+        self.__other_queue.clear()
         list_to_queue(self.altar_servers, self.__other_queue)
 
         for event_id in self.__regular_queues:
             for time in self.__regular_queues[event_id]:
-                self.__regular_queues[event_id][time] = queue.Queue()
+                self.__regular_queues[event_id][time].clear()
                 list_to_queue(
                     self.__regular_queues_cache[event_id][time],
                     self.__regular_queues[event_id][time],
@@ -142,9 +142,7 @@ class AltarServers:
         else:
             list_to_queue(self.altar_servers, self.__other_queue)
 
-    def __get_queue_for_event(
-        self: "AltarServers", event_day: EventDay, event: Event
-    ) -> queue.Queue:
+    def __get_queue_for_event(self: "AltarServers", event_day: EventDay, event: Event) -> deque:
         """Get the queue from which the servers must be taken for a given event.
 
         :param event_day: The event day.
@@ -187,14 +185,14 @@ class AltarServers:
         """
         already_considered = []
         while n_servers_assigned < mass.event.n_servers:
-            chosen_server = self.high_mass_priority.get_nowait()
+            chosen_server = self.high_mass_priority.popleft()
             if chosen_server in already_considered:
-                self.high_mass_priority.put(chosen_server)
+                self.high_mass_priority.append(chosen_server)
                 return n_servers_assigned
 
             already_considered.append(chosen_server)
             mass.add_server(chosen_server)
-            self.high_mass_priority.put(chosen_server)
+            self.high_mass_priority.append(chosen_server)
             n_servers_assigned += 1
             chosen_server.number_of_services += 1
             self.choose(chosen_server)
@@ -214,9 +212,11 @@ class AltarServers:
         count = 0
         while True:
             day_queue = self.__get_queue_for_event(day.event_day, mass.event)
-            if day_queue.empty():
+            try:
+                next_server = day_queue.popleft()
+            except IndexError:
                 self.fill_queue_for(day.event_day, mass.event)
-            next_server = day_queue.get_nowait()
+                continue
 
             if (
                 next_server not in self.already_chosen_this_round
@@ -227,7 +227,7 @@ class AltarServers:
                 break
 
             count += 1
-            if count > len(day_queue.queue):
+            if count > len(day_queue):
                 self.empty_already_chosen_list()
 
         return next_server
@@ -254,7 +254,11 @@ class AltarServers:
         :return: True if the server is available, else False.
         """
         day_queue = self.__get_queue_for_event(day.event_day, mass.event)
-        return chosen_server in list(day_queue.queue)
+        try:
+            day_queue.index(chosen_server)
+            return True
+        except ValueError:
+            return False
 
     def empty_already_chosen_list(self: "AltarServers") -> None:
         """Delete all entries from the already chosen list."""

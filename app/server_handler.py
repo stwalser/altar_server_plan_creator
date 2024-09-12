@@ -3,10 +3,6 @@
 from altar_servers import AltarServers
 
 
-class SameServerTwiceError(Exception):
-    """Simple Exception that is thrown when a server has already been considered for a mass."""
-
-
 class BadSituationError(Exception):
     """Raised when two siblings should be assigned to an event where only one spot is left."""
 

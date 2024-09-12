@@ -15,7 +15,7 @@ from latex_handler import generate_pdf
 from server_handler import BadSituationError, assign_altar_servers
 from tqdm import tqdm
 
-TOTAL_OPTIMIZE_ROUNDS = 1000
+TOTAL_OPTIMIZE_ROUNDS = 10
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 
@@ -88,6 +88,9 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
         iterations.update(1)
         logger.info(iterations)
         sys.stdout.flush()
+
+        clear_calendar(calendar)
+        altar_servers.clear_state()
     return final_altar_servers, final_calendar
 
 
@@ -105,9 +108,6 @@ def assign_servers(calendar: list, altar_servers: AltarServers) -> None:
             altar_servers.clear_state()
             continue
         break
-
-    clear_calendar(calendar)
-    altar_servers.clear_state()
 
 
 if __name__ == "__main__":
