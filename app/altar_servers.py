@@ -1,12 +1,12 @@
 """A module that contains the altar server wrapper class."""
 
-from collections import deque
 import random
+from collections import deque
 from datetime import datetime
 
 from altar_server import AltarServer
-from event_calendar import EventCalendar, EventDay, Event
-from holy_mass import HolyMass, Day
+from event_calendar import Event, EventCalendar, EventDay
+from holy_mass import Day, HolyMass
 
 
 def list_to_queue(altar_servers: list, collection: deque) -> None:
@@ -48,11 +48,9 @@ class AltarServers:
         self.__regular_queues_cache = {}
 
         for event_day in event_calendar.weekday_events.values():
-            self.__regular_queues[event_day.id] = {}
-            self.__regular_queues_cache[event_day.id] = {}
             for event in event_day.events:
-                self.__regular_queues[event_day.id][event.time] = deque()
-                self.__regular_queues_cache[event_day.id][event.time] = []
+                self.__regular_queues[event] = deque()
+                self.__regular_queues_cache[event] = []
 
         self.__shuffle_and_rebuild_cache()
 
@@ -76,12 +74,9 @@ class AltarServers:
         """
         random.shuffle(self.altar_servers)
 
-        for event_id in self.__regular_queues:
-            for time in self.__regular_queues[event_id]:
-                self.__regular_queues[event_id][time].clear()
-                self.__regular_queues_cache[event_id][time] = self.__get_available_servers(
-                    event_id, time
-                )
+        for event in self.__regular_queues:
+            self.__regular_queues[event].clear()
+            self.__regular_queues_cache[event] = self.__get_available_servers(event)
 
     def __add_siblings_to_objects(self: "AltarServers") -> None:
         """Get the sibling objects from the list and add them to the individual sibling lists."""
@@ -98,18 +93,12 @@ class AltarServers:
         self.__other_queue.clear()
         list_to_queue(self.altar_servers, self.__other_queue)
 
-        for event_id in self.__regular_queues:
-            for time in self.__regular_queues[event_id]:
-                self.__regular_queues[event_id][time].clear()
-                list_to_queue(
-                    self.__regular_queues_cache[event_id][time],
-                    self.__regular_queues[event_id][time],
-                )
+        for event in self.__regular_queues:
+            self.__regular_queues[event].clear()
+            list_to_queue(self.__regular_queues_cache[event], self.__regular_queues[event])
 
-    def __get_available_servers(self: "AltarServers", event_id: str, time: datetime.time) -> list:
-        return list(
-            filter(lambda x: event_id not in x.avoid and time not in x.avoid, self.altar_servers)
-        )
+    def __get_available_servers(self: "AltarServers", event: Event) -> list:
+        return list(filter(lambda x: event.id not in x.avoid, self.altar_servers))
 
     def clear_state(self: "AltarServers") -> None:
         """Remove all information in the object that is added during one round."""
@@ -127,37 +116,29 @@ class AltarServers:
         :param event_day: The event day.
         :param event: The event.
         """
-        if (
-            event_day.id in self.__regular_queues
-            and event.time in self.__regular_queues[event_day.id]
-        ):
-            list_to_queue(
-                self.__regular_queues_cache[event_day.id][event.time],
-                self.__regular_queues[event_day.id][event.time],
-            )
-        elif event.time in self.__regular_queues["SUNDAY"]:
-            list_to_queue(
-                self.__regular_queues_cache["SUNDAY"][event.time],
-                self.__regular_queues["SUNDAY"][event.time],
-            )
-        else:
-            list_to_queue(self.altar_servers, self.__other_queue)
+        if event_day in self.__regular_queues:
+            list_to_queue(self.__regular_queues_cache[event], self.__regular_queues[event])
+            return
 
-    def __get_queue_for_event(self: "AltarServers", event_day: EventDay, event: Event) -> deque:
+        for key in self.__regular_queues:
+            if key.time == event.time:
+                list_to_queue(self.__regular_queues_cache[key], self.__regular_queues[key])
+                return
+
+        list_to_queue(self.altar_servers, self.__other_queue)
+
+    def __get_queue_for_event(self: "AltarServers", event: Event) -> deque:
         """Get the queue from which the servers must be taken for a given event.
 
-        :param event_day: The event day.
         :param event: The event object.
         :return: The queue from which the servers must be taken.
         """
-        if (
-            event_day.id in self.__regular_queues
-            and event.time in self.__regular_queues[event_day.id]
-        ):
-            return self.__regular_queues[event_day.id][event.time]
+        if event in self.__regular_queues:
+            return self.__regular_queues[event]
 
-        if event.time in self.__regular_queues["SUNDAY"]:
-            return self.__regular_queues["SUNDAY"][event.time]
+        for key in self.__regular_queues:
+            if key.time == event.time:
+                return self.__regular_queues[key]
 
         return self.__other_queue
 
@@ -210,7 +191,7 @@ class AltarServers:
         """
         count = 0
         while True:
-            day_queue = self.__get_queue_for_event(day.event_day, mass.event)
+            day_queue = self.__get_queue_for_event(mass.event)
             try:
                 next_server = day_queue.popleft()
             except IndexError:
@@ -253,12 +234,13 @@ class AltarServers:
         :param mass: The holy mass.
         :return: True if the server is available, else False.
         """
-        day_queue = self.__get_queue_for_event(day.event_day, mass.event)
+        day_queue = self.__get_queue_for_event(mass.event)
         try:
             day_queue.index(chosen_server)
-            return True
         except ValueError:
             return False
+        else:
+            return True
 
     def __empty_already_chosen_list(self: "AltarServers") -> None:
         """Delete all entries from the already chosen list."""

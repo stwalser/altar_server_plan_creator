@@ -15,14 +15,14 @@ class Event:
 
         :param raw_mass: The dictionary containing info about the mass.
         """
-        time_string = next(iter(raw_mass))
+        self.id = next(iter(raw_mass))
 
-        self.time = datetime.strptime(time_string, "%H:%M").astimezone().time()
+        self.time = None
         self.comment = ""
         self.high_mass = False
         self.location = None
 
-        inner = raw_mass[time_string]
+        inner = raw_mass[self.id]
 
         self.n_servers = inner["n_servers"]
 
@@ -32,6 +32,8 @@ class Event:
             self.high_mass = True
         if "location" in inner:
             self.location = inner["location"]
+        if "time" in inner:
+            self.time = datetime.strptime(inner["time"], "%H:%M").astimezone().time()
 
     def __str__(self: "Event") -> str:
         """Return string representation of the object."""

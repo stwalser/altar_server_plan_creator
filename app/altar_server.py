@@ -26,12 +26,7 @@ class AltarServer:
             if "siblings" in inner:
                 self.siblings = inner["siblings"]
             if "avoid" in inner:
-                for element in inner["avoid"]:
-                    try:
-                        time = datetime.strptime(element, "%H:%M").astimezone().time()
-                        self.avoid.append(time)
-                    except (ValueError, TypeError):
-                        self.avoid.append(element)
+                self.avoid = inner["avoid"]
             if "always_high_mass" in inner:
                 self.always_high_mass = True
             if "locations" in inner:
