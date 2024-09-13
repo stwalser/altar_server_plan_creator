@@ -2,7 +2,6 @@
 
 import random
 from collections import deque
-from datetime import datetime
 
 from altar_server import AltarServer
 from event_calendar import Event, EventCalendar, EventDay
@@ -223,9 +222,7 @@ class AltarServers:
         if len(self.already_chosen_this_round) == len(self.altar_servers):
             self.__empty_already_chosen_list()
 
-    def is_available(
-        self: "AltarServers", chosen_server: AltarServer, day: Day, mass: HolyMass
-    ) -> bool:
+    def is_available(self: "AltarServers", chosen_server: AltarServer, mass: HolyMass) -> bool:
         """Check if a server is available at a certain mass.
 
         This is required, because not all siblings may available at a certain mass.

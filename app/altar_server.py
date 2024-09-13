@@ -1,7 +1,5 @@
 """A module that contains the class that represents a server."""
 
-from datetime import datetime
-
 
 class AltarServer:
     """The altar server class, containing the information of one server and convenience methods."""

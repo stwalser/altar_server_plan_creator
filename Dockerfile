@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 
-RUN apt update && apt install -y texlive-science texlive-latex-extra latexmk
+RUN apt update && \
+    apt install -y latexmk texlive-latex-extra texlive-science
 
 COPY requirements.txt ./
 RUN pip3 install -r requirements.txt
