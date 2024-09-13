@@ -36,7 +36,7 @@ def main() -> None:
     logger.info("Willkommen beim %s", PROGRAM_NAME)
 
     logger.info("Konfiguration wird geladen...")
-    raw_altar_servers = load_yaml_file("config/minis.yaml")
+    raw_altar_servers = load_yaml_file("config/altar_servers.yaml")
     raw_event_calendar = load_yaml_file("config/holy_masses.yaml")
     raw_custom_masses = load_yaml_file("config/custom_masses.yaml")
     event_calendar = EventCalendar(raw_event_calendar, raw_custom_masses)

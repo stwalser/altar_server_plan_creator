@@ -160,7 +160,8 @@ class AltarServers:
         """Assign servers to a mass that are prioritized for high masses.
 
         :param mass: The holy mass.
-        :param n_servers_assigned: The number of servers assigned to the mass before the prioritization.
+        :param n_servers_assigned: The number of servers assigned to the mass before the
+        prioritization.
         :return: The number of servers assigned to the mass after the prioritization.
         """
         already_considered = []
@@ -182,8 +183,9 @@ class AltarServers:
 
         If the queue for an event is empty, it is refilled. The server is only chosen, if it has not
         been chosen this round. This mechanism is required, because of the sibling mechanism. It is
-        possible that a server was already assigned because of its sibling. The counter ensures that if
-        all servers in the queue have been assigned already, the already assigned list is cleared.
+        possible that a server was already assigned because of its sibling. The counter ensures that
+        if all servers in the queue have been assigned already, the already assigned list is
+        cleared.
         :param day: Holds the information about the day.
         :param mass: Holds the information about the mass.
         :return: The chosen server.
