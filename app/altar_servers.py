@@ -59,9 +59,10 @@ class AltarServers:
         self.__other_queue = deque()  # All servers get refilled
         self.__fill_all_refillable_queues()
 
-        self.high_mass_priority = deque()  # Doesn't get empty -> No refill
+        self.__high_mass_priority = deque()  # Doesn't get empty -> No refill
         list_to_queue(
-            list(filter(lambda x: x.always_high_mass, self.altar_servers)), self.high_mass_priority
+            list(filter(lambda x: x.always_high_mass, self.altar_servers)),
+            self.__high_mass_priority,
         )
 
         self.already_chosen_this_round = []
@@ -120,7 +121,7 @@ class AltarServers:
         self.__shuffle_and_rebuild_cache()
         self.__fill_all_refillable_queues()
 
-    def fill_queue_for(self: "AltarServers", event_day: EventDay, event: Event) -> None:
+    def __refill_queue_for(self: "AltarServers", event_day: EventDay, event: Event) -> None:
         """Add all the servers which are available at the given event to the queue of the mass.
 
         :param event_day: The event day.
@@ -184,14 +185,14 @@ class AltarServers:
         """
         already_considered = []
         while n_servers_assigned < mass.event.n_servers:
-            chosen_server = self.high_mass_priority.popleft()
+            chosen_server = self.__high_mass_priority.popleft()
             if chosen_server in already_considered:
-                self.high_mass_priority.append(chosen_server)
+                self.__high_mass_priority.append(chosen_server)
                 return n_servers_assigned
 
             already_considered.append(chosen_server)
             mass.add_server(chosen_server)
-            self.high_mass_priority.append(chosen_server)
+            self.__high_mass_priority.append(chosen_server)
             n_servers_assigned += 1
             self.__choose(chosen_server)
         return n_servers_assigned
@@ -213,7 +214,7 @@ class AltarServers:
             try:
                 next_server = day_queue.popleft()
             except IndexError:
-                self.fill_queue_for(day.event_day, mass.event)
+                self.__refill_queue_for(day.event_day, mass.event)
                 continue
 
             if (
