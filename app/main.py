@@ -12,7 +12,7 @@ from altar_servers import AltarServers, get_distribution
 from date_handler import clear_calendar, create_calendar
 from event_calendar import EventCalendar
 from latex_handler import generate_pdf
-from server_handler import BadSituationError, assign_altar_servers
+from server_handler import assign_servers
 from tqdm import tqdm
 
 TOTAL_OPTIMIZE_ROUNDS = 100
@@ -92,22 +92,6 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
         clear_calendar(calendar)
         altar_servers.clear_state()
     return final_altar_servers, final_calendar
-
-
-def assign_servers(calendar: list, altar_servers: AltarServers) -> None:
-    """Create a single plan by assigning servers until all masses are covered.
-
-    :param calendar: The event calendar.
-    :param altar_servers: The altar servers object.
-    """
-    while True:
-        try:
-            assign_altar_servers(calendar, altar_servers)
-        except BadSituationError:
-            clear_calendar(calendar)
-            altar_servers.clear_state()
-            continue
-        break
 
 
 if __name__ == "__main__":

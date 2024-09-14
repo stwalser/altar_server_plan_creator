@@ -1,10 +1,27 @@
 """A module that contains the functionality of assigning servers to masses."""
 
 from altar_servers import AltarServers
+from date_handler import clear_calendar
 
 
 class BadSituationError(Exception):
     """Raised when two siblings should be assigned to an event where only one spot is left."""
+
+
+def assign_servers(calendar: list, altar_servers: AltarServers) -> None:
+    """Create a single plan by assigning servers until all masses are covered.
+
+    :param calendar: The event calendar.
+    :param altar_servers: The altar servers object.
+    """
+    while True:
+        try:
+            assign_altar_servers(calendar, altar_servers)
+        except BadSituationError:
+            clear_calendar(calendar)
+            altar_servers.clear_state()
+            continue
+        break
 
 
 def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
@@ -22,7 +39,7 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
                     mass, n_servers_assigned
                 )
             while n_servers_assigned < mass.event.n_servers:
-                chosen_server = servers.get_server_from_queues(mass)
+                chosen_server = servers.get_server_from_queues(day, mass)
                 if chosen_server.has_siblings():
                     if all(
                         servers.is_available(sibling, mass) for sibling in chosen_server.siblings

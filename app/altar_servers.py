@@ -196,7 +196,7 @@ class AltarServers:
             try:
                 next_server = day_queue.popleft()
             except IndexError:
-                self.__refill_queue_for(day.event_day, mass.event)
+                self.__refill_queue_for(mass.event)
                 continue
 
             if (
@@ -219,7 +219,7 @@ class AltarServers:
         If the length of the list equals the number of the servers, the list is cleared.
         :param server: The server to add to the list.
         """
-        server.number_of_services += 1
+        server.service_dates.append(date)
         self.already_chosen_this_round.append(server)
         if len(self.already_chosen_this_round) == len(self.altar_servers):
             self.__empty_already_chosen_list()
