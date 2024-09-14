@@ -17,7 +17,7 @@ class AltarServer:
         self.vacations = []
         self.locations = []
         self.always_high_mass = False
-        self.number_of_services = 0
+        self.service_dates = []
 
         if isinstance(raw_altar_server, str):
             self.name = raw_altar_server

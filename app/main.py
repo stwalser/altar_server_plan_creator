@@ -1,10 +1,11 @@
 """A module that contains the high level function calls of the altar server plan creator."""
 
 import copy
+import itertools
 import logging
 import statistics
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import yaml
@@ -15,7 +16,7 @@ from latex_handler import generate_pdf
 from server_handler import assign_servers
 from tqdm import tqdm
 
-TOTAL_OPTIMIZE_ROUNDS = 100
+TOTAL_OPTIMIZE_ROUNDS = 10
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 
@@ -65,7 +66,7 @@ def main() -> None:
 
 
 def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
-    """Create multiple plans until keep the one with the lowest variance in number of services.
+    """Create multiple plans until keep the one with the lowest score in number of services.
 
     :param calendar: The calendar.
     :param altar_servers: The raw altar server dictionary.
@@ -74,16 +75,17 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
     """
     final_calendar = None
     final_altar_servers = None
-    final_variance = 100
+    final_variance1 = 1000
+    final_variance2 = 1000
     iterations = tqdm(total=TOTAL_OPTIMIZE_ROUNDS)
     for _ in range(TOTAL_OPTIMIZE_ROUNDS):
         assign_servers(calendar, altar_servers)
-        distribution = [item[1] for item in get_distribution(altar_servers.altar_servers)]
-        variance = statistics.pvariance(distribution)
-        if variance < final_variance:
+        variance1, variance2 = calculate_statistics(altar_servers)
+        if variance1 < final_variance1 and variance2 < final_variance2:
             final_altar_servers = copy.deepcopy(altar_servers.altar_servers)
             final_calendar = copy.deepcopy(calendar)
-            final_variance = variance
+            final_variance1 = variance1
+            final_variance2 = variance2
 
         iterations.update(1)
         logger.info(iterations)
@@ -92,6 +94,16 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
         clear_calendar(calendar)
         altar_servers.clear_state()
     return final_altar_servers, final_calendar
+
+
+def calculate_statistics(altar_servers):
+    distribution = []
+    distances = []
+    for server in altar_servers.altar_servers:
+        distribution.append(len(server.service_dates))
+        for date_pair in itertools.pairwise(server.service_dates):
+            distances.append((date_pair[1] - date_pair[0]).days)
+    return statistics.pvariance(distribution), statistics.pvariance(distances)
 
 
 if __name__ == "__main__":

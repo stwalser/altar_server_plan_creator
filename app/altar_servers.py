@@ -17,7 +17,7 @@ def list_to_queue(altar_servers: list, collection: deque) -> None:
 def get_distribution(altar_servers: list) -> list:
     """Get how often each server was assigned on the plan."""
     return [
-        (server.name, server.number_of_services)
+        (server.name, len(server.service_dates))
         for server in sorted(altar_servers, key=lambda x: x.name)
     ]
 
@@ -104,7 +104,7 @@ class AltarServers:
         self.already_chosen_this_round = []
 
         for server in self.altar_servers:
-            server.number_of_services = 0
+            server.service_dates = []
 
         self.__shuffle_and_rebuild_cache()
         self.__fill_all_refillable_queues()
@@ -151,7 +151,7 @@ class AltarServers:
         :return: 1 to increase the counter.
         """
         mass.add_server(chosen_server)
-        self.__choose(chosen_server)
+        self.__choose_for(chosen_server, mass)
         return 1
 
     def assign_high_mass_priority_servers(
@@ -175,7 +175,7 @@ class AltarServers:
             mass.add_server(chosen_server)
             self.__high_mass_priority.append(chosen_server)
             n_servers_assigned += 1
-            self.__choose(chosen_server)
+            self.__choose_for(chosen_server, mass)
         return n_servers_assigned
 
     def get_server_from_queues(self: "AltarServers", day: Day, mass: HolyMass) -> AltarServer:
@@ -213,13 +213,13 @@ class AltarServers:
 
         return next_server
 
-    def __choose(self: "AltarServers", server: AltarServer) -> None:
+    def __choose_for(self: "AltarServers", server: AltarServer, mass: HolyMass) -> None:
         """Add a server to the already chosen list.
 
         If the length of the list equals the number of the servers, the list is cleared.
         :param server: The server to add to the list.
         """
-        server.service_dates.append(date)
+        server.service_dates.append(mass.day.date)
         self.already_chosen_this_round.append(server)
         if len(self.already_chosen_this_round) == len(self.altar_servers):
             self.__empty_already_chosen_list()

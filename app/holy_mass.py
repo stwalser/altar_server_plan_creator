@@ -16,6 +16,7 @@ class HolyMass:
         """
         self.servers = []
         self.event = event
+        self.day = None
 
     def add_server(self: "HolyMass", server: AltarServer) -> None:
         """Add a server to the holy mass.
@@ -51,6 +52,7 @@ class Day:
 
         :param mass: The mass to add.
         """
+        mass.day = self
         self.masses.append(mass)
 
     def server_not_assigned(self: "Day", chosen_server: AltarServer) -> bool:
