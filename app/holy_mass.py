@@ -53,23 +53,6 @@ class Day:
         """
         self.masses.append(mass)
 
-    def available(self: "Day", server: AltarServer) -> bool:
-        """Check if a server is available on a given day. Could be unavailable due to vacation.
-
-        :param server: The server to check.
-        :return: True if the server is available, False otherwise.
-        """
-        for element in server.avoid:
-            if isinstance(element, dict) and "long" in element:
-                vacation = element["long"]
-                start = datetime.strptime(vacation["start"], "%d.%m.%Y").astimezone().date()
-                end = datetime.strptime(vacation["end"], "%d.%m.%Y").astimezone().date()
-
-                if start <= self.date <= end:
-                    return False
-
-        return True
-
     def server_not_assigned(self: "Day", chosen_server: AltarServer) -> bool:
         """Check if a server has been assigned on this day already.
 

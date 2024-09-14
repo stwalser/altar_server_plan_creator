@@ -22,7 +22,7 @@ def assign_altar_servers(calendar: list, servers: AltarServers) -> None:
                     mass, n_servers_assigned
                 )
             while n_servers_assigned < mass.event.n_servers:
-                chosen_server = servers.get_server_from_queues(day, mass)
+                chosen_server = servers.get_server_from_queues(mass)
                 if chosen_server.has_siblings():
                     if all(
                         servers.is_available(sibling, mass) for sibling in chosen_server.siblings

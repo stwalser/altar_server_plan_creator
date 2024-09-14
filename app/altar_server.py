@@ -1,5 +1,7 @@
 """A module that contains the class that represents a server."""
 
+from datetime import datetime
+
 
 class AltarServer:
     """The altar server class, containing the information of one server and convenience methods."""
@@ -12,6 +14,7 @@ class AltarServer:
         self.name = ""
         self.siblings = []
         self.avoid = []
+        self.vacations = []
         self.locations = []
         self.always_high_mass = False
         self.number_of_services = 0
@@ -24,11 +27,31 @@ class AltarServer:
             if "siblings" in inner:
                 self.siblings = inner["siblings"]
             if "avoid" in inner:
-                self.avoid = inner["avoid"]
+                self.__parse_avoid(inner)
             if "always_high_mass" in inner:
                 self.always_high_mass = True
             if "locations" in inner:
                 self.locations = inner["locations"]
+
+    def __parse_avoid(self: "AltarServer", inner: dict) -> None:
+        for element in inner["avoid"]:
+            if isinstance(element, int):
+                self.avoid.append(element)
+            else:
+                self.vacations.append(
+                    (
+                        datetime.strptime(element["long"]["start"], "%d.%m.%Y").astimezone().date(),
+                        datetime.strptime(element["long"]["end"], "%d.%m.%Y").astimezone().date(),
+                    )
+                )
+
+    def is_available(self: "AltarServer", date: datetime.date) -> bool:
+        """See if a server is available at a certain date due to vacations.
+
+        :param date: The date to check.
+        :return: True, if the server is available at a certain date. Otherwise, False.
+        """
+        return not any(vacations[0] <= date <= vacations[1] for vacations in self.vacations)
 
     def has_siblings(self: "AltarServer") -> bool:
         """Check if a server has siblings.

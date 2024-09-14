@@ -4,7 +4,7 @@ import random
 from collections import deque
 
 from altar_server import AltarServer
-from event_calendar import Event, EventCalendar, EventDay
+from event_calendar import Event, EventCalendar
 from holy_mass import Day, HolyMass
 
 
@@ -109,13 +109,13 @@ class AltarServers:
         self.__shuffle_and_rebuild_cache()
         self.__fill_all_refillable_queues()
 
-    def __refill_queue_for(self: "AltarServers", event_day: EventDay, event: Event) -> None:
+    def __refill_queue_for(self: "AltarServers", event: Event) -> None:
         """Add all the servers which are available at the given event to the queue of the mass.
 
         :param event_day: The event day.
         :param event: The event.
         """
-        if event_day in self.__regular_queues:
+        if event in self.__regular_queues:
             list_to_queue(self.__regular_queues_cache[event], self.__regular_queues[event])
             return
 
@@ -201,7 +201,7 @@ class AltarServers:
 
             if (
                 next_server not in self.already_chosen_this_round
-                and day.available(next_server)
+                and next_server.is_available(day.date)
                 and day.server_not_assigned(next_server)
                 and (mass.event.location is None or mass.event.location in next_server.locations)
             ):
