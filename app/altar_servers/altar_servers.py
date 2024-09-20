@@ -3,7 +3,7 @@
 import random
 from collections import deque
 
-from altar_server.altar_server import AltarServer
+from altar_servers.altar_server import AltarServer
 from dates.day import Day
 from dates.holy_mass import HolyMass
 from events.event import Event
