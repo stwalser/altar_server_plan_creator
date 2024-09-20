@@ -5,13 +5,13 @@ import itertools
 import logging
 import statistics
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import yaml
-from altar_servers import AltarServers, get_distribution
-from date_handler import clear_calendar, create_calendar
-from event_calendar import EventCalendar
+from app.altar_server.altar_servers import AltarServers, get_distribution
+from app.dates.date_handler import clear_calendar, create_calendar
+from app.events.event import EventCalendar
 from latex_handler import generate_pdf
 from server_handler import assign_servers
 from tqdm import tqdm

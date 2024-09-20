@@ -2,8 +2,8 @@
 
 from datetime import datetime, timedelta
 
-from event_calendar import EventCalendar, EventDay
-from holy_mass import Day, HolyMass
+from app.events.event import EventCalendar, EventDay
+from app.dates.holy_mass import Day, HolyMass
 
 
 def create_calendar(

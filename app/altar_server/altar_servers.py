@@ -3,9 +3,9 @@
 import random
 from collections import deque
 
-from altar_server import AltarServer
-from event_calendar import Event, EventCalendar
-from holy_mass import Day, HolyMass
+from app.altar_server.altar_server import AltarServer
+from app.event.event import Event, EventCalendar
+from app.dates.holy_mass import Day, HolyMass
 
 
 def list_to_queue(altar_servers: list, collection: deque) -> None:

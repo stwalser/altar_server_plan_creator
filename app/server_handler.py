@@ -1,7 +1,7 @@
 """A module that contains the functionality of assigning servers to masses."""
 
-from altar_servers import AltarServers
-from date_handler import clear_calendar
+from app.altar_server.altar_servers import AltarServers
+from app.dates.date_handler import clear_calendar
 
 
 class BadSituationError(Exception):
