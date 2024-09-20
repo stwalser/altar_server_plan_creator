@@ -9,9 +9,9 @@ from datetime import datetime
 from pathlib import Path
 
 import yaml
-from app.altar_server.altar_servers import AltarServers, get_distribution
-from app.dates.date_handler import clear_calendar, create_calendar
-from app.events.event import EventCalendar
+from altar_servers.altar_servers import AltarServers, get_distribution
+from dates.date_handler import clear_calendar, create_calendar
+from events.event_calendar import EventCalendar
 from latex_handler import generate_pdf
 from server_handler import assign_servers
 from tqdm import tqdm
@@ -96,13 +96,21 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
     return final_altar_servers, final_calendar
 
 
-def calculate_statistics(altar_servers):
+def calculate_statistics(altar_servers: AltarServers) -> tuple:
+    """Get the variance of the number of services and of the distances between the services.
+
+    :param altar_servers: The altar servers object.
+    :return: The variance of the number of services and of the distances between the services.
+    """
     distribution = []
     distances = []
     for server in altar_servers.altar_servers:
         distribution.append(len(server.service_dates))
-        for date_pair in itertools.pairwise(server.service_dates):
-            distances.append((date_pair[1] - date_pair[0]).days)
+        distances.extend(
+            (date_pair[1] - date_pair[0]).days
+            for date_pair in itertools.pairwise(server.service_dates)
+        )
+
     return statistics.pvariance(distribution), statistics.pvariance(distances)
 
 

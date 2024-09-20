@@ -1,7 +1,6 @@
 """A module that contains the representation of the holy mass and a calendar day."""
 
-from app.altar_server.altar_server import AltarServer
-
+from app.altar_servers.altar_server import AltarServer
 from app.events.event import Event
 
 

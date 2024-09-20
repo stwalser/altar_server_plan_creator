@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from babel.dates import format_date, format_time
-from app.dates.holy_mass import Day
+from dates.day import Day
 from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular
 from pylatex.utils import bold
 

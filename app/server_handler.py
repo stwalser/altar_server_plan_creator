@@ -1,6 +1,6 @@
 """A module that contains the functionality of assigning servers to masses."""
 
-from app.altar_server.altar_servers import AltarServers
+from app.altar_servers.altar_servers import AltarServers
 from app.dates.date_handler import clear_calendar
 
 

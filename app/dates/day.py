@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from app.altar_server.altar_server import AltarServer
+from app.altar_servers.altar_server import AltarServer
 from app.dates.holy_mass import HolyMass
 from app.events.event_day import EventDay
 

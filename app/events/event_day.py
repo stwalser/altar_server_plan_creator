@@ -6,8 +6,8 @@ from dateutil import easter
 
 from app.events.event import Event
 
-
 EASTER_SUNDAY = easter.easter(datetime.now(tz=timezone(timedelta(hours=2))).year)
+
 
 class EventDay:
     """Class that represents a day containing one or multiple events."""
