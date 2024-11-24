@@ -3,8 +3,7 @@
 from datetime import datetime, timedelta, timezone
 
 from dateutil import easter
-
-from app.events.event import Event
+from events.event import Event
 
 EASTER_SUNDAY = easter.easter(datetime.now(tz=timezone(timedelta(hours=2))).year)
 
@@ -19,7 +18,6 @@ class EventDay:
         """
         self.id = next(iter(raw_event))
         inner = raw_event[self.id]
-
         self.weekday = None
         self.date = None
         self.name = ""

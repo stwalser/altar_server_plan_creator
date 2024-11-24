@@ -1,7 +1,6 @@
 """A module that contains the representation of the holy mass and a calendar day."""
-
-from app.altar_servers.altar_server import AltarServer
-from app.events.event import Event
+from altar_servers.scheduling_unit import SchedulingUnit
+from events.event import Event
 
 
 class HolyMass:
@@ -16,12 +15,12 @@ class HolyMass:
         self.event = event
         self.day = None
 
-    def add_server(self: "HolyMass", server: AltarServer) -> None:
+    def add_scheduling_unit(self: "HolyMass", scheduling_unit: SchedulingUnit) -> None:
         """Add a server to the holy mass.
 
-        :param server: The server to add.
+        :param scheduling_unit: The scheduling unit to add the minis from.
         """
-        self.servers.append(server)
+        self.servers.extend(scheduling_unit.minis)
 
     def __str__(self: "HolyMass") -> str:
         """Return a string representation of the holy mass."""

@@ -12,7 +12,6 @@ class Event:
         :param raw_mass: The dictionary containing info about the mass.
         """
         self.id = next(iter(raw_mass))
-
         self.time = None
         self.comment = ""
         self.high_mass = False

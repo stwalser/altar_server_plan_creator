@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from app.events.event_day import EventDay
+from events.event_day import EventDay
 
 
 class EventCalendar:
