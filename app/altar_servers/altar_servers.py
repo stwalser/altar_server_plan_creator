@@ -57,17 +57,9 @@ class AltarServers:
                 self.__regular_queues_cache[event] = []
 
         self.__shuffle_and_rebuild_cache()
-
         self.__other_queue = deque()  # All servers get refilled
         self.__fill_all_refillable_queues()
-
-        self.high_mass_priority = deque()  # Doesn't get empty -> No refill
-        list_to_queue(
-            list(filter(lambda x: x.always_high_mass, self.scheduling_units)),
-            self.high_mass_priority,
-        )
-
-        self.already_chosen_this_round = []
+        self.__already_chosen_this_round = []
 
     def __shuffle_and_rebuild_cache(self: "AltarServers") -> None:
         """Shuffle the altar server list and rebuild the cache.
@@ -110,7 +102,7 @@ class AltarServers:
 
     def clear_state(self: "AltarServers") -> None:
         """Remove all information in the object that is added during one round."""
-        self.already_chosen_this_round = []
+        self.__already_chosen_this_round = []
 
         for server in self.altar_servers:
             server.service_dates = []
@@ -170,7 +162,7 @@ class AltarServers:
                 self.__refill_queue_for(mass.event)
                 continue
 
-            if (next_su not in self.already_chosen_this_round
+            if (next_su not in self.__already_chosen_this_round
                     and next_su.is_available(day.date)
                     and day.server_not_assigned(next_su)
                     and (mass.event.location is None or mass.event.location in next_su.locations)
@@ -188,7 +180,6 @@ class AltarServers:
 
         This is required, because not all siblings may available at a certain mass.
         :param chosen_server: The server to check the availability for.
-        :param day: The day of the mass.
         :param mass: The holy mass.
         :return: True if the server is available, else False.
         """
@@ -212,30 +203,6 @@ class AltarServers:
         self.__choose_for(scheduling_unit, mass)
         return len(scheduling_unit)
 
-    def assign_high_mass_priority_servers(
-            self: "AltarServers", mass: HolyMass, n_servers_assigned: int
-    ) -> int:
-        """Assign servers to a mass that are prioritized for high masses.
-
-        :param mass: The holy mass.
-        :param n_servers_assigned: The number of servers assigned to the mass before the
-        prioritization.
-        :return: The number of servers assigned to the mass after the prioritization.
-        """
-        already_considered = []
-        while n_servers_assigned < mass.event.n_servers:
-            chosen_su = self.high_mass_priority.popleft()
-            if chosen_su in already_considered:
-                self.high_mass_priority.append(chosen_su)
-                return n_servers_assigned
-
-            already_considered.append(chosen_su)
-            mass.add_scheduling_unit(chosen_su)
-            self.high_mass_priority.append(chosen_su)
-            n_servers_assigned += 1
-            self.__choose_for(chosen_su, mass)
-        return n_servers_assigned
-
     def __choose_for(self: "AltarServers", su: SchedulingUnit, mass: HolyMass) -> None:
         """Add a server to the already chosen list.
 
@@ -244,10 +211,10 @@ class AltarServers:
         """
         for server in su.minis:
             server.service_dates.append(mass.day.date)
-        self.already_chosen_this_round.append(su)
-        if len(self.already_chosen_this_round) == len(self.altar_servers):
+        self.__already_chosen_this_round.append(su)
+        if len(self.__already_chosen_this_round) == len(self.altar_servers):
             self.__empty_already_chosen_list()
 
     def __empty_already_chosen_list(self: "AltarServers") -> None:
         """Delete all entries from the already chosen list."""
-        self.already_chosen_this_round = []
+        self.__already_chosen_this_round = []

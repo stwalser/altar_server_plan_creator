@@ -30,12 +30,8 @@ def _assign_altar_servers(calendar: list, servers: AltarServers) -> None:
     :param servers: Wrapper object of all servers.
     """
     for day in calendar:
-        for mass in sorted(day.masses, key=lambda x: not x.event.high_mass):
+        for mass in sorted(day.masses, key=lambda x: x.time):
             n_servers_assigned = 0
-
-            if mass.event.high_mass:
-                n_servers_assigned = servers.assign_high_mass_priority_servers(mass,
-                                                                        n_servers_assigned)
             while n_servers_assigned < mass.event.n_servers:
                 chosen_su = servers.get_su_from_queues(day, mass)
                 if n_servers_assigned + len(chosen_su) <= mass.event.n_servers:

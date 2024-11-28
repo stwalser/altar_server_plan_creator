@@ -16,7 +16,6 @@ class AltarServer:
         self.avoid = []
         self.vacations = []
         self.locations = []
-        self.always_high_mass = False
         self.service_dates = []
 
         if isinstance(raw_altar_server, str):
@@ -28,8 +27,6 @@ class AltarServer:
                 self.siblings = inner["siblings"]
             if "avoid" in inner:
                 self.__parse_avoid(inner)
-            if "always_high_mass" in inner:
-                self.always_high_mass = True
             if "locations" in inner:
                 self.locations = inner["locations"]
 

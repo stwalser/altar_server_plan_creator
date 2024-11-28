@@ -36,14 +36,6 @@ class SchedulingUnit:
         return list(itertools.chain(self.minis))
 
     @property
-    def always_high_mass(self: "SchedulingUnit") -> bool:
-        """Check if all minis of this unit are meant for high masses.
-
-        :return: True, if all are meant for high mass, else False.
-        """
-        return all(mini.always_high_mass for mini in self.minis)
-
-    @property
     def locations(self: "SchedulingUnit") -> list:
         """The locations the minis of this scheduling unit can be assigned to.
 
