@@ -16,7 +16,7 @@ from latex_handler import generate_pdf
 from server_handler import assign_servers
 from tqdm import tqdm
 
-TOTAL_OPTIMIZE_ROUNDS = 10
+TOTAL_OPTIMIZE_ROUNDS = 1
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 
@@ -48,6 +48,7 @@ def main() -> None:
 
     logger.info("Kalender wird erstellet...")
     calendar = create_calendar(start_date, end_date, event_calendar)
+    print(calendar)
     logger.info("Abgeschlossen")
     logger.info("Ministranten werden erstellet...")
     altar_servers = AltarServers(raw_altar_servers, event_calendar)

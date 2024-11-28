@@ -1,5 +1,5 @@
 """A module that contains the Event Calendar class."""
-
+import copy
 from datetime import datetime
 
 from events.event_day import EventDay
@@ -16,6 +16,7 @@ class EventCalendar:
         """
         self.weekday_events = {}
         self.irregular_events = {}
+        self.custom_masses = {}
         for raw_event_day in raw_event_calendar:
             event_day = EventDay(raw_event_day)
             if event_day.weekday is not None:
@@ -23,12 +24,10 @@ class EventCalendar:
             else:
                 self.irregular_events[event_day.date] = event_day
 
-        for raw_custom_mass in raw_custom_masses:
-            event_day = EventDay(raw_custom_mass)
-            if event_day.date in self.irregular_events:
-                self.irregular_events[event_day.date].events += event_day.events
-            else:
-                self.irregular_events[event_day.date] = event_day
+        for raw_custom_day in raw_custom_masses:
+            event_day = EventDay(raw_custom_day)
+            self.custom_masses[event_day.date] = event_day
+        print(self.custom_masses)
 
     def get_event_day_by_date(self: "EventCalendar", date: datetime.date) -> EventDay | None:
         """Get the event day object if there are any events on a specific date.
@@ -36,10 +35,17 @@ class EventCalendar:
         :param date: The date to get the event day object for.
         :return: The event day object if there are any events, else None.
         """
-        if date in self.irregular_events:
-            return self.irregular_events[date]
-
+        event_day = None
         if date.weekday() in self.weekday_events:
-            return self.weekday_events[date.weekday()]
+            event_day = copy.deepcopy(self.weekday_events[date.weekday()])
 
-        return None
+        if date in self.irregular_events:
+            event_day = self.irregular_events[date]
+
+        if date in self.custom_masses:
+            if event_day is None:
+                return self.custom_masses[date]
+            else:
+                event_day.events.extend(self.custom_masses[date].events)
+
+        return event_day
