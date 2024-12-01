@@ -1,6 +1,8 @@
 """A module that contains the altar server wrapper class."""
-
+import copy
+import itertools
 import random
+import statistics
 from collections import deque
 
 from altar_servers.altar_server import AltarServer
@@ -41,11 +43,11 @@ class AltarServers:
 
         :param raw_altar_servers: The dictionary containing all the altar servers and their info.
         """
-        self.altar_servers = [
+        self.__altar_servers = [
             AltarServer(raw_altar_server) for raw_altar_server in raw_altar_servers
         ]
         self.__add_siblings_to_objects()
-        self.scheduling_units = []
+        self.__scheduling_units = []
         self.__create_scheduling_units()
 
         self.__regular_queues = {}
@@ -68,22 +70,23 @@ class AltarServers:
         would be to shuffle before assigning the servers to the individual queues, but then some
         could be assigned in rapid succession. This way we are keeping rounds of assignments.
         """
+        random.shuffle(self.__scheduling_units)
+
         for event in self.__regular_queues:
-            random.shuffle(self.scheduling_units)
             self.__regular_queues[event].clear()
             self.__regular_queues_cache[event] = self.__get_available_scheduling_units(event)
 
     def __create_scheduling_units(self: "AltarServers") -> None:
-        for altar_server in self.altar_servers:
-            if not any(altar_server in unit.minis for unit in self.scheduling_units):
-                self.scheduling_units.append(SchedulingUnit([altar_server, *altar_server.siblings]))
+        for altar_server in self.__altar_servers:
+            if not any(altar_server in unit.servers for unit in self.__scheduling_units):
+                self.__scheduling_units.append(SchedulingUnit([altar_server, *altar_server.siblings]))
 
     def __add_siblings_to_objects(self: "AltarServers") -> None:
         """Get the sibling objects from the list and add them to the individual sibling lists."""
-        for altar_server in self.altar_servers:
+        for altar_server in self.__altar_servers:
             if altar_server.has_siblings():
                 object_list = [
-                    next(filter(lambda x: x.name == sibling_name, self.altar_servers))
+                    next(filter(lambda x: x.name == sibling_name, self.__altar_servers))
                     for sibling_name in altar_server.siblings
                 ]
                 altar_server.siblings = object_list
@@ -91,20 +94,20 @@ class AltarServers:
     def __fill_all_refillable_queues(self: "AltarServers") -> None:
         """Take the servers from the cache and assign them to the individual queues."""
         self.__other_queue.clear()
-        list_to_queue(self.scheduling_units, self.__other_queue)
+        list_to_queue(self.__scheduling_units, self.__other_queue)
 
         for event in self.__regular_queues:
             self.__regular_queues[event].clear()
             list_to_queue(self.__regular_queues_cache[event], self.__regular_queues[event])
 
     def __get_available_scheduling_units(self: "AltarServers", event: Event) -> list:
-        return list(filter(lambda x: event.id not in x.avoid, self.scheduling_units))
+        return list(filter(lambda x: event.id not in x.avoid, self.__scheduling_units))
 
     def clear_state(self: "AltarServers") -> None:
         """Remove all information in the object that is added during one round."""
         self.__already_chosen_this_round = []
 
-        for server in self.altar_servers:
+        for server in self.__altar_servers:
             server.service_dates = []
 
         self.__shuffle_and_rebuild_cache()
@@ -124,7 +127,7 @@ class AltarServers:
                 list_to_queue(self.__regular_queues_cache[key], self.__regular_queues[key])
                 return
 
-        list_to_queue(self.scheduling_units, self.__other_queue)
+        list_to_queue(self.__scheduling_units, self.__other_queue)
 
     def __get_queue_for_event(self: "AltarServers", event: Event) -> deque:
         """Get the queue from which the servers must be taken for a given event.
@@ -175,22 +178,6 @@ class AltarServers:
 
         return next_su
 
-    def is_available(self: "AltarServers", chosen_server: AltarServer, mass: HolyMass) -> bool:
-        """Check if a server is available at a certain mass.
-
-        This is required, because not all siblings may available at a certain mass.
-        :param chosen_server: The server to check the availability for.
-        :param mass: The holy mass.
-        :return: True if the server is available, else False.
-        """
-        day_queue = self.__get_queue_for_event(mass.event)
-        try:
-            day_queue.index(chosen_server)
-        except ValueError:
-            return False
-        else:
-            return True
-
     def assign_scheduling_unit(self: "AltarServers", scheduling_unit: SchedulingUnit,
                                mass: HolyMass) -> int:
         """Assign a server without siblings to a mass.
@@ -209,12 +196,36 @@ class AltarServers:
         If the length of the list equals the number of the servers, the list is cleared.
         :param su: The scheduling unit to add extend the list for.
         """
-        for server in su.minis:
+        for server in su.servers:
             server.service_dates.append(mass.day.date)
         self.__already_chosen_this_round.append(su)
-        if len(self.__already_chosen_this_round) == len(self.altar_servers):
+        if len(self.__already_chosen_this_round) == len(self.__altar_servers):
             self.__empty_already_chosen_list()
 
     def __empty_already_chosen_list(self: "AltarServers") -> None:
         """Delete all entries from the already chosen list."""
         self.__already_chosen_this_round = []
+
+    def get_copy(self) -> list[AltarServer]:
+        """Get a copy of the altar server list.
+
+        :return: The list.
+        """
+        return copy.deepcopy(self.__altar_servers)
+
+    def calculate_statistics(self: "AltarServers") -> tuple:
+        """Get the variance of the number of services and of the distances between the services.
+
+        :param altar_servers: The altar servers object.
+        :return: The variance of the number of services and of the distances between the services.
+        """
+        distribution = []
+        distances = []
+        for server in self.__altar_servers:
+            distribution.append(len(server.service_dates))
+            distances.extend(
+                (date_pair[1] - date_pair[0]).days
+                for date_pair in itertools.pairwise(server.service_dates)
+            )
+
+        return statistics.pvariance(distribution), statistics.pvariance(distances)

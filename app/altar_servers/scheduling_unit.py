@@ -9,7 +9,7 @@ class SchedulingUnit:
     Siblings, which always want to be together, are in one scheduling object.
     """
 
-    minis = None
+    servers = None
 
     def __init__(self: "SchedulingUnit", minis: list) -> None:
         """Create a scheduling unit object. It contains one or multiple minis.
@@ -18,14 +18,14 @@ class SchedulingUnit:
 
         :param minis: The list of minis.
         """
-        self.minis: list = minis
+        self.servers: list = minis
 
     def __len__(self: "SchedulingUnit") -> int:
         """Get the number of minis in this scheduling unit.
 
         :return: The number of minis in this scheduling unit.
         """
-        return len(self.minis)
+        return len(self.servers)
 
     @property
     def avoid(self: "SchedulingUnit") -> list:
@@ -33,7 +33,10 @@ class SchedulingUnit:
 
         :return: The list of masses on which this scheduling unit can't be scheduled.
         """
-        return list(itertools.chain(self.minis))
+        avoid = set()
+        for server in self.servers:
+            avoid = avoid.union(set(server.avoid))
+        return avoid
 
     @property
     def locations(self: "SchedulingUnit") -> list:
@@ -41,7 +44,7 @@ class SchedulingUnit:
 
         :return:
         """
-        return self.minis[0].locations
+        return self.servers[0].locations
 
     def is_available(self: "SchedulingUnit", date: datetime.date) -> bool:
         """Check if all minis of the scheduling unit are available.
@@ -49,4 +52,4 @@ class SchedulingUnit:
         :param date: The date to check.
         :return: True, if the server is available at a certain date. Otherwise, False.
         """
-        return all(mini.is_available(date) for mini in self.minis)
+        return all(mini.is_available(date) for mini in self.servers)

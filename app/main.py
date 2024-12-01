@@ -1,14 +1,10 @@
 """A module that contains the high level function calls of the altar server plan creator."""
 
 import copy
-import itertools
 import logging
-import statistics
 import sys
 from datetime import datetime
-from pathlib import Path
 
-import yaml
 from altar_servers.altar_servers import AltarServers, get_distribution
 from dates.date_handler import clear_calendar, create_calendar
 from events.event_calendar import EventCalendar
@@ -16,19 +12,11 @@ from latex_handler import generate_pdf
 from server_handler import assign_servers
 from tqdm import tqdm
 
+from utils.utils import load_yaml_file
+
 TOTAL_OPTIMIZE_ROUNDS = 1
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
-
-
-def load_yaml_file(path: str) -> list | dict:
-    """Load a yaml file at the given path.
-
-    :param path: The path to the yaml file.
-    :return: The dictionary containing the content of the yaml file.
-    """
-    with Path(path).open("r") as file:
-        return yaml.safe_load(file)
 
 
 def main() -> None:
@@ -81,9 +69,9 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
     iterations = tqdm(total=TOTAL_OPTIMIZE_ROUNDS)
     for _ in range(TOTAL_OPTIMIZE_ROUNDS):
         assign_servers(calendar, altar_servers)
-        variance1, variance2 = calculate_statistics(altar_servers)
+        variance1, variance2 = altar_servers.calculate_statistics()
         if variance1 < final_variance1 and variance2 < final_variance2:
-            final_altar_servers = copy.deepcopy(altar_servers.altar_servers)
+            final_altar_servers = altar_servers.get_copy()
             final_calendar = copy.deepcopy(calendar)
             final_variance1 = variance1
             final_variance2 = variance2
@@ -95,24 +83,6 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
         clear_calendar(calendar)
         altar_servers.clear_state()
     return final_altar_servers, final_calendar
-
-
-def calculate_statistics(altar_servers: AltarServers) -> tuple:
-    """Get the variance of the number of services and of the distances between the services.
-
-    :param altar_servers: The altar servers object.
-    :return: The variance of the number of services and of the distances between the services.
-    """
-    distribution = []
-    distances = []
-    for server in altar_servers.altar_servers:
-        distribution.append(len(server.service_dates))
-        distances.extend(
-            (date_pair[1] - date_pair[0]).days
-            for date_pair in itertools.pairwise(server.service_dates)
-        )
-
-    return statistics.pvariance(distribution), statistics.pvariance(distances)
 
 
 if __name__ == "__main__":

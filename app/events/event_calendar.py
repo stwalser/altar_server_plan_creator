@@ -27,7 +27,6 @@ class EventCalendar:
         for raw_custom_day in raw_custom_masses:
             event_day = EventDay(raw_custom_day)
             self.custom_masses[event_day.date] = event_day
-        print(self.custom_masses)
 
     def get_event_day_by_date(self: "EventCalendar", date: datetime.date) -> EventDay | None:
         """Get the event day object if there are any events on a specific date.

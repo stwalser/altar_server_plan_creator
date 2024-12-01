@@ -29,3 +29,16 @@ class TestAltarServer:
             attributes = list(raw_altar_server.values())[0]
             if "vacation" in attributes:
                 assert altar_server.vacations == attributes["vacation"]
+
+    def test_location(self, raw_altar_servers):
+        for raw_altar_server in raw_altar_servers:
+            altar_server = AltarServer(raw_altar_server)
+            attributes = list(raw_altar_server.values())[0]
+            assert altar_server.locations == attributes["locations"]
+
+    def test_siblings(self, raw_altar_servers):
+        for raw_altar_server in raw_altar_servers:
+            altar_server = AltarServer(raw_altar_server)
+            attributes = list(raw_altar_server.values())[0]
+            if "siblings" in attributes:
+                assert altar_server.siblings == attributes["siblings"]

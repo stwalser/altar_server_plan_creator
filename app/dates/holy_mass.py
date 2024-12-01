@@ -20,7 +20,7 @@ class HolyMass:
 
         :param scheduling_unit: The scheduling unit to add the minis from.
         """
-        self.servers.extend(scheduling_unit.minis)
+        self.servers.extend(scheduling_unit.servers)
 
     def __str__(self: "HolyMass") -> str:
         """Return a string representation of the holy mass."""
