@@ -48,3 +48,12 @@ class EventCalendar:
                 event_day.events.extend(self.custom_masses[date].events)
 
         return event_day
+
+    def custom_event_is_weekday_in_special(self, date: datetime.date, time: datetime.time) -> (int
+                                                                                               | None):
+        for event_day in self.weekday_events.values():
+            if event_day.date == date:
+                for event in event_day.events:
+                    if event.time == time:
+                        return event.id
+        return None

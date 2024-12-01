@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from utils.utils import load_yaml_file
 
-TOTAL_OPTIMIZE_ROUNDS = 1
+TOTAL_OPTIMIZE_ROUNDS = 10
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 

@@ -43,6 +43,7 @@ class AltarServers:
 
         :param raw_altar_servers: The dictionary containing all the altar servers and their info.
         """
+        self.event_calendar = event_calendar
         self.__altar_servers = [
             AltarServer(raw_altar_server) for raw_altar_server in raw_altar_servers
         ]
@@ -160,13 +161,16 @@ class AltarServers:
         while True:
             day_queue = self.__get_queue_for_event(mass.event)
             try:
-                next_su = day_queue.popleft()
+                next_su: SchedulingUnit = day_queue.popleft()
             except IndexError:
                 self.__refill_queue_for(mass.event)
                 continue
 
+            potential_weekday_id = self.event_calendar.custom_event_is_weekday_in_special(day.date,
+                                                                          mass.event.time)
             if (next_su not in self.__already_chosen_this_round
                     and next_su.is_available(day.date)
+                    and (potential_weekday_id is None or potential_weekday_id not in next_su.avoid)
                     and day.server_not_assigned(next_su)
                     and (mass.event.location is None or mass.event.location in next_su.locations)
             ):
