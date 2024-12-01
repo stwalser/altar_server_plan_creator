@@ -26,21 +26,20 @@ class AltarServer:
             if "siblings" in inner:
                 self.siblings = inner["siblings"]
             if "avoid" in inner:
-                self.__parse_avoid(inner)
+                self.avoid = inner["avoid"]
+            if "vacations" in inner:
+                self.__parse_vacations(inner["vacations"])
             if "locations" in inner:
                 self.locations = inner["locations"]
 
-    def __parse_avoid(self: "AltarServer", inner: dict) -> None:
-        for element in inner["avoid"]:
-            if isinstance(element, int):
-                self.avoid.append(element)
-            else:
-                self.vacations.append(
-                    (
-                        datetime.strptime(element["long"]["start"], "%d.%m.%Y").astimezone().date(),
-                        datetime.strptime(element["long"]["end"], "%d.%m.%Y").astimezone().date(),
-                    )
+    def __parse_vacations(self: "AltarServer", inner: dict) -> None:
+        for element in inner:
+            self.vacations.append(
+                (
+                    datetime.strptime(element["start"], "%d.%m.%Y").astimezone().date(),
+                    datetime.strptime(element["end"], "%d.%m.%Y").astimezone().date(),
                 )
+            )
 
     def is_available(self: "AltarServer", date: datetime.date) -> bool:
         """See if a server is available at a certain date due to vacations.
