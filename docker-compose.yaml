@@ -5,3 +5,4 @@ services:
     volumes:
       - ./config:/config
       - ./output:/output
+      - ./app:/app
