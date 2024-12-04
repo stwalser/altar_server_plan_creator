@@ -1,4 +1,5 @@
 """A module that contains the Event Calendar class."""
+
 import copy
 from datetime import datetime
 
@@ -44,13 +45,25 @@ class EventCalendar:
         if date in self.custom_masses:
             if event_day is None:
                 return self.custom_masses[date]
-            else:
-                event_day.events.extend(self.custom_masses[date].events)
+
+            event_day.events.extend(self.custom_masses[date].events)
 
         return event_day
 
-    def custom_event_is_weekday_in_special(self, date: datetime.date, time: datetime.time) -> (int
-                                                                                               | None):
+    def custom_event_is_weekday_in_special(
+        self: "EventCalendar", date: datetime.date, time: datetime.time
+    ) -> int | None:
+        """Return the id of a weekday event if the specified date and time match.
+
+        If a custom event is on the same weekday and at the same time as an existing weekday
+        event, this method returns the id of that weekday event. This is necessary to avoid
+        assigning servers on special masses that take place at the exact same time as weekday
+        events they need to avoid.
+
+        :param date: The date of the event.
+        :param time: The time of the event.
+        :return: The id of the weekday event if it exists, else None.
+        """
         for event_day in self.weekday_events.values():
             if event_day.date == date:
                 for event in event_day.events:

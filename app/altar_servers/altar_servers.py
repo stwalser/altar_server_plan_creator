@@ -1,4 +1,5 @@
 """A module that contains the altar server wrapper class."""
+
 import copy
 import itertools
 import random
@@ -37,7 +38,7 @@ class AltarServers:
     """
 
     def __init__(
-            self: "AltarServers", raw_altar_servers: dict, event_calendar: EventCalendar
+        self: "AltarServers", raw_altar_servers: dict, event_calendar: EventCalendar
     ) -> None:
         """Create the altar servers object, which holds the different queues.
 
@@ -78,9 +79,12 @@ class AltarServers:
             self.__regular_queues_cache[event] = self.__get_available_scheduling_units(event)
 
     def __create_scheduling_units(self: "AltarServers") -> None:
+        """Create scheduling units which group siblings and servers that want to server together."""
         for altar_server in self.__altar_servers:
             if not any(altar_server in unit.servers for unit in self.__scheduling_units):
-                self.__scheduling_units.append(SchedulingUnit([altar_server, *altar_server.siblings]))
+                self.__scheduling_units.append(
+                    SchedulingUnit([altar_server, *altar_server.siblings])
+                )
 
     def __add_siblings_to_objects(self: "AltarServers") -> None:
         """Get the sibling objects from the list and add them to the individual sibling lists."""
@@ -166,13 +170,15 @@ class AltarServers:
                 self.__refill_queue_for(mass.event)
                 continue
 
-            potential_weekday_id = self.event_calendar.custom_event_is_weekday_in_special(day.date,
-                                                                          mass.event.time)
-            if (next_su not in self.__already_chosen_this_round
-                    and next_su.is_available(day.date)
-                    and (potential_weekday_id is None or potential_weekday_id not in next_su.avoid)
-                    and day.server_not_assigned(next_su)
-                    and (mass.event.location is None or mass.event.location in next_su.locations)
+            potential_weekday_id = self.event_calendar.custom_event_is_weekday_in_special(
+                day.date, mass.event.time
+            )
+            if (
+                next_su not in self.__already_chosen_this_round
+                and next_su.is_available(day.date)
+                and (potential_weekday_id is None or potential_weekday_id not in next_su.avoid)
+                and day.server_not_assigned(next_su)
+                and (mass.event.location is None or mass.event.location in next_su.locations)
             ):
                 break
 
@@ -182,8 +188,9 @@ class AltarServers:
 
         return next_su
 
-    def assign_scheduling_unit(self: "AltarServers", scheduling_unit: SchedulingUnit,
-                               mass: HolyMass) -> int:
+    def assign_scheduling_unit(
+        self: "AltarServers", scheduling_unit: SchedulingUnit, mass: HolyMass
+    ) -> int:
         """Assign a server without siblings to a mass.
 
         :param scheduling_unit: The scheduling unit.
@@ -210,7 +217,7 @@ class AltarServers:
         """Delete all entries from the already chosen list."""
         self.__already_chosen_this_round = []
 
-    def get_copy(self) -> list[AltarServer]:
+    def get_copy(self: "AltarServers") -> list[AltarServer]:
         """Get a copy of the altar server list.
 
         :return: The list.

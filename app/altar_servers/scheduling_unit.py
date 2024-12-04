@@ -1,6 +1,6 @@
 """A module that contains the scheduling unit class, which is used in queues."""
+
 import datetime
-import itertools
 
 
 class SchedulingUnit:

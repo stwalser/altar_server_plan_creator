@@ -33,7 +33,7 @@ class EventDay:
         else:
             self.date = datetime.strptime(inner["date"], "%d.%m.").astimezone().date()
             self.date = self.date.replace(year=datetime.now().astimezone().year)
-            if self.date.month < datetime.today().month:
+            if self.date.month < datetime.now(tz=None).month:
                 self.date = self.date.replace(year=self.date.year + 1)
 
         for raw_mass in inner["masses"]:

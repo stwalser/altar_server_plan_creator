@@ -6,12 +6,11 @@ import sys
 from datetime import datetime
 
 from altar_servers.altar_servers import AltarServers, get_distribution
+from altar_servers.server_handler import assign_servers
 from dates.date_handler import clear_calendar, create_calendar
 from events.event_calendar import EventCalendar
-from latex_handler import generate_pdf
-from server_handler import assign_servers
 from tqdm import tqdm
-
+from utils.latex_handler import generate_pdf
 from utils.utils import load_yaml_file
 
 TOTAL_OPTIMIZE_ROUNDS = 10
@@ -36,7 +35,6 @@ def main() -> None:
 
     logger.info("Kalender wird erstellet...")
     calendar = create_calendar(start_date, end_date, event_calendar)
-    print(calendar)
     logger.info("Abgeschlossen")
     logger.info("Ministranten werden erstellet...")
     altar_servers = AltarServers(raw_altar_servers, event_calendar)

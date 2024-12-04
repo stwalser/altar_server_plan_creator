@@ -30,11 +30,17 @@ class Plan(Document):
 
         self.preamble.append(Command("title", "Miniplan"))
         if start_date.year != end_date.year:
-            self.preamble.append(Command("date", start_date.strftime("%d.%m.%Y") + " - " +
-                                             end_date.strftime("%d.%m.%Y")))
+            self.preamble.append(
+                Command(
+                    "date", start_date.strftime("%d.%m.%Y") + " - " + end_date.strftime("%d.%m.%Y")
+                )
+            )
         else:
-            self.preamble.append(Command("date", start_date.strftime("%d.%m") + " - " +
-                                         end_date.strftime("%d.%m.%Y")))
+            self.preamble.append(
+                Command(
+                    "date", start_date.strftime("%d.%m") + " - " + end_date.strftime("%d.%m.%Y")
+                )
+            )
         self.append(NoEscape(r"\maketitle"))
 
     def add_welcome_text(self: "Plan", welcome_text: dict) -> None:

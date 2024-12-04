@@ -1,4 +1,5 @@
 """A module that contains the representation of the holy mass and a calendar day."""
+
 from altar_servers.scheduling_unit import SchedulingUnit
 from events.event import Event
 
