@@ -15,6 +15,7 @@ class Event:
         self.time = None
         self.comment = ""
         self.location = None
+        self.pre_assigned_servers = []
 
         inner = raw_mass[self.id]
 
@@ -26,6 +27,8 @@ class Event:
             self.location = inner["location"]
         if "time" in inner:
             self.time = datetime.strptime(inner["time"], "%H:%M").astimezone().time()
+        if "servers" in inner:
+            self.pre_assigned_servers = inner["servers"]
 
     def __str__(self: "Event") -> str:
         """Return string representation of the object."""

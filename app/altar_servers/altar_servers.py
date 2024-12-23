@@ -65,6 +65,12 @@ class AltarServers:
         self.__fill_all_refillable_queues()
         self.__already_chosen_this_round = []
 
+    def get_server_by_name(self, name: str) -> AltarServer:
+        for server in self.__altar_servers:
+            if server.name == name:
+                return server
+        raise KeyError(name)
+
     def __shuffle_and_rebuild_cache(self: "AltarServers") -> None:
         """Shuffle the altar server list and rebuild the cache.
 
