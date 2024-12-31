@@ -12,7 +12,7 @@ class AltarServer:
         :param raw_altar_server: The dictionary with the info on the server.
         """
         self.name = ""
-        self.siblings = []
+        self.sibling_names = []
         self.avoid = []
         self.vacations = []
         self.locations = []
@@ -24,7 +24,7 @@ class AltarServer:
             self.name = next(iter(raw_altar_server))
             inner = raw_altar_server[self.name]
             if "siblings" in inner:
-                self.siblings = inner["siblings"]
+                self.sibling_names = inner["siblings"]
             if "avoid" in inner:
                 self.avoid = inner["avoid"]
             if "vacations" in inner:
@@ -54,7 +54,7 @@ class AltarServer:
 
         :return: True if the server has siblings, else False.
         """
-        return len(self.siblings) > 0
+        return len(self.sibling_names) > 0
 
     def __str__(self: "AltarServer") -> str:
         """Return string representation of the object."""

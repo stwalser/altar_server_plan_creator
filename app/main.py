@@ -2,6 +2,7 @@
 
 import copy
 import logging
+import pathlib
 import sys
 from datetime import datetime
 
@@ -9,6 +10,7 @@ from altar_servers.altar_servers import AltarServers, get_distribution
 from altar_servers.server_handler import assign_servers
 from dates.date_handler import clear_calendar, create_calendar
 from events.event_calendar import EventCalendar
+from plan_info import PlanInfo
 from tqdm import tqdm
 from utils.latex_handler import generate_pdf
 from utils.utils import load_yaml_file
@@ -28,13 +30,11 @@ def main() -> None:
     raw_event_calendar = load_yaml_file("config/holy_masses.yaml")
     raw_custom_masses = load_yaml_file("config/custom_masses.yaml")
     event_calendar = EventCalendar(raw_event_calendar, raw_custom_masses)
-    plan_info = load_yaml_file("config/plan_info.yaml")
-
-    start_date = datetime.strptime(plan_info["start_date"], "%d.%m.%Y").astimezone().date()
-    end_date = datetime.strptime(plan_info["end_date"], "%d.%m.%Y").astimezone().date()
+    json_string = pathlib.Path("config/plan_info.json").read_text()
+    plan_info = PlanInfo.model_validate_json(json_string)
 
     logger.info("Kalender wird erstellet...")
-    calendar = create_calendar(start_date, end_date, event_calendar)
+    calendar = create_calendar(plan_info.start_date, plan_info.end_date, event_calendar)
     logger.info("Abgeschlossen")
     logger.info("Ministranten werden erstellet...")
     altar_servers = AltarServers(raw_altar_servers, event_calendar)
@@ -48,7 +48,7 @@ def main() -> None:
     for server in get_distribution(final_altar_servers):
         logger.info(server)
     logger.info("PDF wird erstellt")
-    generate_pdf(final_calendar, start_date, end_date, plan_info["welcome_text"])
+    generate_pdf(final_calendar, plan_info.start_date, plan_info.end_date, plan_info["welcome_text"])
     logger.info("Abgeschlossen")
 
 

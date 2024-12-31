@@ -89,7 +89,7 @@ class AltarServers:
         for altar_server in self.__altar_servers:
             if not any(altar_server in unit.servers for unit in self.__scheduling_units):
                 self.__scheduling_units.append(
-                    SchedulingUnit([altar_server, *altar_server.siblings])
+                    SchedulingUnit([altar_server, *altar_server.sibling_names])
                 )
 
     def __add_siblings_to_objects(self: "AltarServers") -> None:
@@ -98,9 +98,9 @@ class AltarServers:
             if altar_server.has_siblings():
                 object_list = [
                     next(filter(lambda x: x.name == sibling_name, self.__altar_servers))
-                    for sibling_name in altar_server.siblings
+                    for sibling_name in altar_server.sibling_names
                 ]
-                altar_server.siblings = object_list
+                altar_server.sibling_names = object_list
 
     def __fill_all_refillable_queues(self: "AltarServers") -> None:
         """Take the servers from the cache and assign them to the individual queues."""
