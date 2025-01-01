@@ -4,6 +4,7 @@ from datetime import datetime
 
 from babel.dates import format_date, format_time
 from dates.day import Day
+from plan_info import WelcomeText
 from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular
 from pylatex.utils import bold
 
@@ -43,19 +44,19 @@ class Plan(Document):
             )
         self.append(NoEscape(r"\maketitle"))
 
-    def add_welcome_text(self: "Plan", welcome_text: dict) -> None:
+    def add_welcome_text(self: "Plan", welcome_text: WelcomeText) -> None:
         """Add the welcome text to the plan.
 
         :param welcome_text: The welcome text.
         """
-        self.append(f"{welcome_text["greeting"]}\n\n")
-        for body in welcome_text["body"]:
+        self.append(f"{welcome_text.greeting}\n\n")
+        for body in welcome_text.body:
             self.append(f"{body}\n\n")
-        self.append(welcome_text["dismissal"])
+        self.append(welcome_text.dismissal)
 
 
 def generate_pdf(
-    days: list, start_date: datetime.date, end_date: datetime.date, welcome_text: dict
+    days: list, start_date: datetime.date, end_date: datetime.date, welcome_text: WelcomeText
 ) -> None:
     """Generate a PDF of the plan.
 

@@ -26,10 +26,10 @@ def main() -> None:
     logger.info("Willkommen beim %s", PROGRAM_NAME)
 
     logger.info("Konfiguration wird geladen...")
-    raw_altar_servers = load_yaml_file("config/altar_servers.yaml")
     raw_event_calendar = load_yaml_file("config/holy_masses.yaml")
     raw_custom_masses = load_yaml_file("config/custom_masses.yaml")
     event_calendar = EventCalendar(raw_event_calendar, raw_custom_masses)
+    
     json_string = pathlib.Path("config/plan_info.json").read_text()
     plan_info = PlanInfo.model_validate_json(json_string)
 
@@ -37,7 +37,8 @@ def main() -> None:
     calendar = create_calendar(plan_info.start_date, plan_info.end_date, event_calendar)
     logger.info("Abgeschlossen")
     logger.info("Ministranten werden erstellet...")
-    altar_servers = AltarServers(raw_altar_servers, event_calendar)
+    json_string = pathlib.Path("config/altar_servers.json").read_text()
+    altar_servers = AltarServers(json_string, event_calendar)
     logger.info("Abgeschlossen")
 
     logger.info("Ministranten werden eingeteilt...")
@@ -48,7 +49,7 @@ def main() -> None:
     for server in get_distribution(final_altar_servers):
         logger.info(server)
     logger.info("PDF wird erstellt")
-    generate_pdf(final_calendar, plan_info.start_date, plan_info.end_date, plan_info["welcome_text"])
+    generate_pdf(final_calendar, plan_info.start_date, plan_info.end_date, plan_info.welcome_text)
     logger.info("Abgeschlossen")
 
 

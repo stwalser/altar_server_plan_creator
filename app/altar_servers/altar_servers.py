@@ -12,6 +12,7 @@ from dates.day import Day
 from dates.holy_mass import HolyMass
 from events.event import Event
 from events.event_calendar import EventCalendar
+from pydantic import BaseModel, TypeAdapter
 
 
 def list_to_queue(collection1: list, collection: deque) -> None:
@@ -45,9 +46,8 @@ class AltarServers:
         :param raw_altar_servers: The dictionary containing all the altar servers and their info.
         """
         self.event_calendar = event_calendar
-        self.__altar_servers = [
-            AltarServer(raw_altar_server) for raw_altar_server in raw_altar_servers
-        ]
+
+        self.__altar_servers = TypeAdapter(list[AltarServer]).validate_json(raw_altar_servers)
         self.__add_siblings_to_objects()
         self.__scheduling_units = []
         self.__create_scheduling_units()
