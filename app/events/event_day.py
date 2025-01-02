@@ -1,47 +1,19 @@
 """A module that contains the Event Day class."""
 
-from datetime import datetime, timedelta, timezone
+from pydantic import BaseModel
 
-from dateutil import easter
 from events.event import Event
 
-EASTER_SUNDAY = easter.easter(datetime.now(tz=timezone(timedelta(hours=2))).year)
-
-
-class EventDay:
+class EventDay(BaseModel):
     """Class that represents a day containing one or multiple events."""
 
-    def __init__(self: "EventDay", raw_event: dict) -> None:
-        """Create a new EventDay object.
-
-        :param raw_event: The dictionary containing information about the event day.
-        """
-        self.id = next(iter(raw_event))
-        inner = raw_event[self.id]
-        self.weekday = None
-        self.date = None
-        self.name = ""
-        self.events = []
-
-        if "name" in inner:
-            self.name = inner["name"]
-
-        if "weekday" in inner["date"]:
-            self.weekday = inner["date"]["weekday"]
-        elif "easter" in inner["date"]:
-            self.date = EASTER_SUNDAY + timedelta(days=int(inner["date"]["easter"]))
-        else:
-            self.date = datetime.strptime(inner["date"], "%d.%m.").astimezone().date()
-            self.date = self.date.replace(year=datetime.now().astimezone().year)
-            if self.date.month < datetime.now(tz=None).month:
-                self.date = self.date.replace(year=self.date.year + 1)
-
-        for raw_mass in inner["masses"]:
-            self.events.append(Event(raw_mass))
+    id: str
+    name: str | None = None
+    events: list[Event]
 
     def __str__(self: "EventDay") -> str:
         """Return string representation of the object."""
-        return f"{self.date} - {self.weekday} - {self.id}"
+        return f"{self.id} - {self.name}"
 
     def __repr__(self: "EventDay") -> str:
         """Return a string representation of the object."""

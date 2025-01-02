@@ -55,7 +55,7 @@ class AltarServers:
         self.__regular_queues = {}
         self.__regular_queues_cache = {}
 
-        for event_day in event_calendar.weekday_events.values():
+        for event_day in event_calendar.weekday.values():
             for event in event_day.events:
                 self.__regular_queues[event] = deque()
                 self.__regular_queues_cache[event] = []

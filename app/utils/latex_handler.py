@@ -100,7 +100,7 @@ def fill_document(table: Tabular, days: list) -> None:
             else:
                 table_row = ("", format_time(mass.event.time, "H.mm", locale="de") + " Uhr")
 
-            if mass.event.comment != "":
+            if mass.event.comment is not None:
                 table_row += (MultiColumn(2, align="l", data=bold(f"({mass.event.comment})")),)
                 table.add_row(table_row)
                 table_row = ("", "")
@@ -119,7 +119,7 @@ def conditional_hline_start(day: Day, table: Tabular) -> None:
     :param day: The calendar day.
     :param table: The tabular object.
     """
-    if day.event_day.name != "":
+    if day.event_day.name is not None:
         table.add_hline()
         table.add_row((MultiColumn(TABLE_WIDTH, align="c", data=bold(day.event_day.name)),))
 
@@ -130,7 +130,7 @@ def conditional_hline_end(day: Day, table: Tabular) -> None:
     :param day: The calendar day.
     :param table: The tabular object
     """
-    if day.event_day.name != "":
+    if day.event_day.name is not None:
         table.add_hline()
 
 

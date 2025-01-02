@@ -4,7 +4,6 @@ import copy
 import logging
 import pathlib
 import sys
-from datetime import datetime
 
 from altar_servers.altar_servers import AltarServers, get_distribution
 from altar_servers.server_handler import assign_servers
@@ -13,7 +12,6 @@ from events.event_calendar import EventCalendar
 from plan_info import PlanInfo
 from tqdm import tqdm
 from utils.latex_handler import generate_pdf
-from utils.utils import load_yaml_file
 
 TOTAL_OPTIMIZE_ROUNDS = 10
 PROGRAM_NAME = "Mini-Plan Ersteller"
@@ -26,19 +24,18 @@ def main() -> None:
     logger.info("Willkommen beim %s", PROGRAM_NAME)
 
     logger.info("Konfiguration wird geladen...")
-    raw_event_calendar = load_yaml_file("config/holy_masses.yaml")
-    raw_custom_masses = load_yaml_file("config/custom_masses.yaml")
-    event_calendar = EventCalendar(raw_event_calendar, raw_custom_masses)
+    raw_event_calendar = pathlib.Path("config/holy_masses.json").read_text()
+    event_calendar = EventCalendar.model_validate_json(raw_event_calendar)
     
-    json_string = pathlib.Path("config/plan_info.json").read_text()
-    plan_info = PlanInfo.model_validate_json(json_string)
+    raw_plan_info = pathlib.Path("config/plan_info.json").read_text()
+    plan_info = PlanInfo.model_validate_json(raw_plan_info)
 
     logger.info("Kalender wird erstellet...")
     calendar = create_calendar(plan_info.start_date, plan_info.end_date, event_calendar)
     logger.info("Abgeschlossen")
     logger.info("Ministranten werden erstellet...")
-    json_string = pathlib.Path("config/altar_servers.json").read_text()
-    altar_servers = AltarServers(json_string, event_calendar)
+    raw_altar_servers = pathlib.Path("config/altar_servers.json").read_text()
+    altar_servers = AltarServers(raw_altar_servers, event_calendar)
     logger.info("Abgeschlossen")
 
     logger.info("Ministranten werden eingeteilt...")

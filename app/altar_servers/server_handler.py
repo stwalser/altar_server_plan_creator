@@ -30,24 +30,25 @@ def assign_servers(calendar: list, altar_servers: AltarServers) -> None:
 
 def _pre_assign(mass: HolyMass, day: Day, servers: AltarServers) -> int:
     assigned = 0
-    for item in mass.event.pre_assigned_servers:
-        if isinstance(mass.event.pre_assigned_servers, dict):
-            date = datetime.datetime.strptime(item, "%d.%m.")
-            if date.month == day.date.month and date.day == day.date.day:
-                for name in mass.event.pre_assigned_servers[item]:
-                    try:
-                        server = servers.get_server_by_name(name)
-                        servers.assign_scheduling_unit(SchedulingUnit([server]), mass)
-                        assigned += 1
-                    except KeyError:
-                        continue
+    if mass.event.servers is not None:
+        if isinstance(mass.event.servers, dict):
+            for date, item_list in mass.event.servers.items():
+                if date == day.date:
+                    for name in item_list:
+                        try:
+                            server = servers.get_server_by_name(name)
+                            servers.assign_scheduling_unit(SchedulingUnit([server]), mass)
+                            assigned += 1
+                        except KeyError:
+                            continue
         else:
-            try:
-                server = servers.get_server_by_name(item)
-                servers.assign_scheduling_unit(SchedulingUnit([server]), mass)
-                assigned += 1
-            except KeyError:
-                continue
+            for item in mass.event.servers:
+                try:
+                    server = servers.get_server_by_name(item)
+                    servers.assign_scheduling_unit(SchedulingUnit([server]), mass)
+                    assigned += 1
+                except KeyError:
+                    continue
     return assigned
 
 
