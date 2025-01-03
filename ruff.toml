@@ -6,6 +6,10 @@ target-version = "py312"
 [lint]
 select = ["ALL"]
 ignore = ["D213", "D203", "COM812", "ISC001"]
+# multi-line-summary-second-line (D213)
+# incorrect-blank-line-before-class (D203)
+# missing-trailing-comma (COM812)
+# single-line-implicit-string-concatenation (ISC001)
 
 [format]
 quote-style = "double"

@@ -12,6 +12,7 @@ class WelcomeText(BaseModel):
     body: list[str]
     dismissal: str
 
+
 class PlanInfo(BaseModel):
     """The plan info."""
 

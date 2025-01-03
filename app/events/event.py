@@ -1,4 +1,5 @@
 """A module that contains the representations of events and event days and their associated data."""
+
 import datetime
 
 from pydantic import BaseModel
@@ -24,4 +25,4 @@ class Event(BaseModel):
 
     def __hash__(self) -> int:
         """Return the hash value of an event."""
-        return self.id.__hash__()
+        return self.id
