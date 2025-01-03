@@ -12,7 +12,7 @@ from dates.day import Day
 from dates.holy_mass import HolyMass
 from events.event import Event
 from events.event_calendar import EventCalendar
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 
 
 def list_to_queue(collection1: list, collection: deque) -> None:
@@ -66,6 +66,7 @@ class AltarServers:
         self.__already_chosen_this_round = []
 
     def get_server_by_name(self, name: str) -> AltarServer:
+        """Get the server object by its name."""
         for server in self.__altar_servers:
             if server.name == name:
                 return server

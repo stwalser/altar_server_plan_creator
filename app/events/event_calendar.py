@@ -2,13 +2,13 @@
 
 import copy
 import datetime
-from pydantic import BaseModel
 
 from dateutil import easter
 from events.event_day import EventDay
+from pydantic import BaseModel
 
-
-EASTER_SUNDAY = easter.easter(datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=2))).year)
+EASTER_SUNDAY = easter.easter(datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=2)
+                                                                         )).year)
 
 
 class EventCalendar(BaseModel):

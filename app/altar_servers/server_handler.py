@@ -1,5 +1,4 @@
 """A module that contains the functionality of assigning servers to masses."""
-import datetime
 
 from altar_servers.altar_servers import AltarServers
 from altar_servers.scheduling_unit import SchedulingUnit

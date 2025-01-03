@@ -26,7 +26,7 @@ def main() -> None:
     logger.info("Konfiguration wird geladen...")
     raw_event_calendar = pathlib.Path("config/holy_masses.json").read_text()
     event_calendar = EventCalendar.model_validate_json(raw_event_calendar)
-    
+
     raw_plan_info = pathlib.Path("config/plan_info.json").read_text()
     plan_info = PlanInfo.model_validate_json(raw_plan_info)
 

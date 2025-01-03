@@ -1,9 +1,13 @@
 """A module that contains the class that represents a server."""
 
 import datetime
+
 from pydantic import BaseModel, Field
 
+
 class Vacation(BaseModel):
+    """The vacation class."""
+
     start: datetime.date
     end: datetime.date
 

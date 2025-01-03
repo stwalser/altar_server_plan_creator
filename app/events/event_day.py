@@ -1,8 +1,8 @@
 """A module that contains the Event Day class."""
 
+from events.event import Event
 from pydantic import BaseModel
 
-from events.event import Event
 
 class EventDay(BaseModel):
     """Class that represents a day containing one or multiple events."""
