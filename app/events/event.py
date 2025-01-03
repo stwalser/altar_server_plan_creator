@@ -1,4 +1,4 @@
-"""A module that contains the representations of events and event days and their associated data."""
+"""A module that contains the representations of events and their associated data."""
 
 import datetime
 
@@ -25,4 +25,4 @@ class Event(BaseModel):
 
     def __hash__(self) -> int:
         """Return the hash value of an event."""
-        return self.id
+        return self.id.__hash__()
