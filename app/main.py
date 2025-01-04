@@ -45,6 +45,7 @@ def main() -> None:
     logger.info("Statistik")
     for server in get_distribution(final_altar_servers):
         logger.info(server)
+
     logger.info("PDF wird erstellt")
     generate_pdf(final_calendar, plan_info.start_date, plan_info.end_date, plan_info.welcome_text)
     logger.info("Abgeschlossen")

@@ -3,4 +3,5 @@ pydantic~=2.10.4
 pydantic_core~=2.27.2
 PyLaTeX~=1.4.2
 python_dateutil~=2.9.0.post0
+ruff~=0.8.4
 tqdm~=4.66.4
