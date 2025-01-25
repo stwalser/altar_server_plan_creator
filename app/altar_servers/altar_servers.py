@@ -48,7 +48,6 @@ class AltarServers:
         self.event_calendar = event_calendar
 
         self.__altar_servers = TypeAdapter(list[AltarServer]).validate_json(raw_altar_servers)
-        print(self.__altar_servers[0].model_json_schema())
         self.__add_siblings_to_objects()
         self.__scheduling_units = []
         self.__create_scheduling_units()
