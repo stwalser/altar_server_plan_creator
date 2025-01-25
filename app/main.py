@@ -13,7 +13,7 @@ from plan_info import PlanInfo
 from tqdm import tqdm
 from utils.latex_handler import generate_pdf
 
-TOTAL_OPTIMIZE_ROUNDS = 10
+TOTAL_OPTIMIZE_ROUNDS = 100
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 
