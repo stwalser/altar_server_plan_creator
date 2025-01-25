@@ -74,7 +74,6 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
             final_variance2 = variance2
 
         iterations.update(1)
-        logger.info(iterations)
         sys.stdout.flush()
 
         clear_calendar(calendar)
