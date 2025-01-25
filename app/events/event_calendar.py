@@ -33,8 +33,9 @@ class EventCalendar(BaseModel):
         if date in self.date:
             event_day = self.date[date]
 
-        if (date - EASTER_SUNDAY).days in self.easter:
-            event_day = self.easter[date]
+        days_to_easter: int = (date - EASTER_SUNDAY).days
+        if days_to_easter in self.easter:
+            event_day = self.easter[days_to_easter]
 
         if date in self.custom:
             if event_day is None:
