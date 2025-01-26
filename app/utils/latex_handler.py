@@ -4,7 +4,7 @@ from datetime import datetime
 
 from babel.dates import format_date, format_time
 from dates.day import Day
-from plan_info import WelcomeText
+from plan_info.plan_info import WelcomeText
 from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular
 from pylatex.utils import bold
 

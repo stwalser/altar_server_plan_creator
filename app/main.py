@@ -9,7 +9,7 @@ from altar_servers.altar_servers import AltarServers, get_distribution
 from altar_servers.server_handler import assign_servers
 from dates.date_handler import clear_calendar, create_calendar
 from events.event_calendar import EventCalendar
-from plan_info import PlanInfo
+from plan_info.plan_info import PlanInfo
 from tqdm import tqdm
 from utils.latex_handler import generate_pdf
 
