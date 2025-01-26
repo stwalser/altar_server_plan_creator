@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from altar_servers.altar_server import AltarServer
+from altar_servers.scheduling_unit import SchedulingUnit
 from dates.holy_mass import HolyMass
 from events.event_day import EventDay
 
@@ -28,15 +28,15 @@ class Day:
         mass.day = self
         self.masses.append(mass)
 
-    def server_not_assigned(self: "Day", chosen_server: AltarServer) -> bool:
+    def servers_of_su_not_assigned(self: "Day", su: SchedulingUnit) -> bool:
         """Check if a server has been assigned on this day already.
 
-        That can be due to high-priority assignments or custom masses that take place on the same
+        That can be due to pre-assignments or custom masses that take place on the same
         day as normal masses or if a round ends during a day that demands a lot of servers.
-        :param chosen_server: The server to check.
+        :param su: The scheduling unit to check.
         :return: True, if the server has not been assigned on this day yet. False otherwise.
         """
-        return not any(chosen_server in mass.servers for mass in self.masses)
+        return all(all(server not in mass.servers for mass in self.masses) for server in su.servers)
 
     def __str__(self: "Day") -> str:
         """Return a string representation of the day."""
