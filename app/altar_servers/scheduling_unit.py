@@ -53,7 +53,7 @@ class SchedulingUnit:
         :return: True, if the server is available at a certain date. Otherwise, False.
         """
         return all(mini.is_available(date) for mini in self.servers)
-    
+
     def __str__(self: "SchedulingUnit") -> str:
         """Return string representation of the object."""
         return str([str(server) for server in self.servers])
