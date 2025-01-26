@@ -40,19 +40,19 @@ class SchedulingUnit:
 
     @property
     def locations(self: "SchedulingUnit") -> list:
-        """The locations the minis of this scheduling unit can be assigned to.
+        """The locations the servers of this scheduling unit can be assigned to.
 
         :return:
         """
         return self.servers[0].locations
 
     def is_available(self: "SchedulingUnit", date: datetime.date) -> bool:
-        """Check if all minis of the scheduling unit are available.
+        """Check if all servers of the scheduling unit are available.
 
         :param date: The date to check.
         :return: True, if the server is available at a certain date. Otherwise, False.
         """
-        return all(mini.is_available(date) for mini in self.servers)
+        return all(server.is_available(date) for server in self.servers)
 
     def __str__(self: "SchedulingUnit") -> str:
         """Return string representation of the object."""
