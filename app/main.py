@@ -6,6 +6,7 @@ import pathlib
 import sys
 
 from altar_servers.altar_servers import AltarServers, get_distribution
+from altar_servers.queue_manager import QueueManager
 from altar_servers.server_handler import assign_servers
 from dates.date_handler import clear_calendar, create_calendar
 from events.event_calendar import EventCalendar
@@ -33,14 +34,19 @@ def main() -> None:
     logger.info("Kalender wird erstellet...")
     calendar = create_calendar(plan_info.start_date, plan_info.end_date, event_calendar)
     logger.info("Abgeschlossen")
-    logger.info("Ministranten werden erstellet...")
+    logger.info("Ministranten werden erstellt...")
     raw_altar_servers = pathlib.Path("config/altar_servers.json").read_text()
-    altar_servers = AltarServers(raw_altar_servers, event_calendar)
+    altar_servers = AltarServers.model_validate_json(raw_altar_servers)
+    logger.info("Abgeschlossen")
+    logger.info("Warteschlangen werden erstellt...")
+    queue_manager = QueueManager(event_calendar, altar_servers)
     logger.info("Abgeschlossen")
 
     logger.info("Ministranten werden eingeteilt...")
 
-    final_altar_servers, final_calendar = optimize_assignments(calendar, altar_servers)
+    final_altar_servers, final_calendar = optimize_assignments(
+        calendar, queue_manager, altar_servers
+    )
 
     logger.info("Statistik")
     for server in get_distribution(final_altar_servers):
@@ -51,7 +57,9 @@ def main() -> None:
     logger.info("Abgeschlossen")
 
 
-def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
+def optimize_assignments(
+    calendar: list, queue_manager: QueueManager, altar_servers: AltarServers
+) -> tuple:
     """Create multiple plans until keep the one with the lowest score in number of services.
 
     :param calendar: The calendar.
@@ -65,7 +73,7 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
     final_variance2 = 1000
     iterations = tqdm(total=TOTAL_OPTIMIZE_ROUNDS)
     for _ in range(TOTAL_OPTIMIZE_ROUNDS):
-        assign_servers(calendar, altar_servers)
+        assign_servers(calendar, queue_manager, altar_servers)
         variance1, variance2 = altar_servers.calculate_statistics()
         if variance1 < final_variance1 and variance2 < final_variance2:
             final_altar_servers = altar_servers.get_copy()
@@ -77,7 +85,7 @@ def optimize_assignments(calendar: list, altar_servers: AltarServers) -> tuple:
         sys.stdout.flush()
 
         clear_calendar(calendar)
-        altar_servers.clear_state()
+        queue_manager.clear_state()
     return final_altar_servers, final_calendar
 
 
