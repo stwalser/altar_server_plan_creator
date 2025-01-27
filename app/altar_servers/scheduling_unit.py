@@ -27,15 +27,16 @@ class SchedulingUnit:
         """
         return len(self.servers)
 
-    @property
-    def avoid(self: "SchedulingUnit") -> list:
+    def avoid(self: "SchedulingUnit", event_id: str) -> list:
         """Get the masses on which this scheduling unit can't be scheduled.
 
         :return: The list of masses on which this scheduling unit can't be scheduled.
         """
         avoid = set()
         for server in self.servers:
-            avoid = avoid.union(set(server.avoid))
+            for id, value in server.fine_tuner.items():
+                if event_id == id:
+                    avoid.add(value)
         return avoid
 
     @property
@@ -46,7 +47,7 @@ class SchedulingUnit:
         """
         return self.servers[0].locations
 
-    def is_available(self: "SchedulingUnit", date: datetime.date) -> bool:
+    def is_available_on(self: "SchedulingUnit", date: datetime.date) -> bool:
         """Check if all servers of the scheduling unit are available.
 
         :param date: The date to check.

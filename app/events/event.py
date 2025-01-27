@@ -8,7 +8,7 @@ from pydantic import BaseModel
 class Event(BaseModel):
     """Class that represents a single event in the event calendar. Typically, a mass."""
 
-    id: int
+    id: str
     n_servers: int
     time: datetime.time
     comment: str | None = None

@@ -2,6 +2,7 @@
 
 import copy
 import itertools
+import random
 import statistics
 
 from altar_servers.altar_server import AltarServer
@@ -72,11 +73,20 @@ class AltarServers(BaseModel):
     ):
         return (
             su not in self.__already_chosen_this_round
-            and su.is_available(day.date)
+            and su.is_available_on(day.date)
             and (potential_weekday_id is None or potential_weekday_id not in su.avoid)
             and day.servers_of_su_not_assigned(su)
             and (mass.event.location is None or mass.event.location in su.locations)
         )
+    
+    def su_is_considered(self: "AltarServers", su: SchedulingUnit, event_id: str):
+        values = []
+        for server in su.servers:
+            if event_id in server.fine_tuner:
+                values.append(server.fine_tuner[event_id])
+            else:
+                values.append(1)
+        return random.uniform(0, 1) <= statistics.mean(values)
 
     def __create_scheduling_units(self: "AltarServers") -> None:
         """Create scheduling units which group siblings and servers that want to server together."""
@@ -97,7 +107,7 @@ class AltarServers(BaseModel):
                 altar_server.sibling_names = object_list
 
     def get_available_scheduling_units(self: "AltarServers", event: Event) -> list:
-        return list(filter(lambda x: event.id not in x.avoid, self.__scheduling_units))
+        return list(filter(lambda x: all(x.avoid(event.id)), self.__scheduling_units))
 
     def assign_scheduling_unit(
         self: "AltarServers", scheduling_unit: SchedulingUnit, mass: HolyMass
