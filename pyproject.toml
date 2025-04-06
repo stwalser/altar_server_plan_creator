@@ -1,0 +1,33 @@
+[project]
+name = "altar-server-plan-creator"
+version = "0.12.1"
+description = "A tool to create schedules for altar servers"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "babel>=2.17.0",
+    "pydantic>=2.11.2",
+    "pydantic-core>=2.33.1",
+    "pylatex>=1.4.2",
+    "python-dateutil>=2.9.0.post0",
+    "ruff>=0.11.4",
+    "tqdm>=4.67.1",
+]
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D213", "D203", "COM812", "ISC001"]
+# multi-line-summary-second-line (D213)
+# incorrect-blank-line-before-class (D203)
+# missing-trailing-comma (COM812)
+# single-line-implicit-string-concatenation (ISC001)
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
