@@ -1,0 +1,159 @@
+{
+    "$defs": {
+        "Event": {
+            "description": "Class that represents a single event in the event calendar. Typically, a mass.",
+            "properties": {
+                "id": {
+                    "title": "Id",
+                    "type": "string"
+                },
+                "n_servers": {
+                    "title": "N Servers",
+                    "type": "integer"
+                },
+                "time": {
+                    "format": "time",
+                    "title": "Time",
+                    "type": "string"
+                },
+                "comment": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Comment"
+                },
+                "location": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Location"
+                },
+                "servers": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "additionalProperties": {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array"
+                            },
+                            "propertyNames": {
+                                "format": "date"
+                            },
+                            "type": "object"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Servers"
+                }
+            },
+            "required": [
+                "id",
+                "n_servers",
+                "time"
+            ],
+            "title": "Event",
+            "type": "object"
+        },
+        "EventDay": {
+            "description": "Class that represents a day containing one or multiple events.",
+            "properties": {
+                "id": {
+                    "title": "Id",
+                    "type": "string"
+                },
+                "name": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Name"
+                },
+                "events": {
+                    "items": {
+                        "$ref": "#/$defs/Event"
+                    },
+                    "title": "Events",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "id",
+                "events"
+            ],
+            "title": "EventDay",
+            "type": "object"
+        }
+    },
+    "description": "The Event calendar class that contains all events and their information.",
+    "properties": {
+        "weekday": {
+            "additionalProperties": {
+                "$ref": "#/$defs/EventDay"
+            },
+            "title": "Weekday",
+            "type": "object"
+        },
+        "easter": {
+            "additionalProperties": {
+                "$ref": "#/$defs/EventDay"
+            },
+            "title": "Easter",
+            "type": "object"
+        },
+        "date": {
+            "additionalProperties": {
+                "$ref": "#/$defs/EventDay"
+            },
+            "propertyNames": {
+                "format": "date"
+            },
+            "title": "Date",
+            "type": "object"
+        },
+        "custom": {
+            "additionalProperties": {
+                "$ref": "#/$defs/EventDay"
+            },
+            "propertyNames": {
+                "format": "date"
+            },
+            "title": "Custom",
+            "type": "object"
+        }
+    },
+    "required": [
+        "weekday",
+        "easter",
+        "date",
+        "custom"
+    ],
+    "title": "EventCalendar",
+    "type": "object"
+}

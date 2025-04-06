@@ -1,0 +1,102 @@
+{
+    "$defs": {
+        "AltarServer": {
+            "description": "The altar server class, containing the information of one server and convenience methods.",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "siblings": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": [],
+                    "title": "Siblings"
+                },
+                "vacations": {
+                    "default": [],
+                    "items": {
+                        "$ref": "#/$defs/Vacation"
+                    },
+                    "title": "Vacations",
+                    "type": "array"
+                },
+                "locations": {
+                    "default": [],
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Locations",
+                    "type": "array"
+                },
+                "service_dates": {
+                    "default": [],
+                    "items": {
+                        "format": "date",
+                        "type": "string"
+                    },
+                    "title": "Service Dates",
+                    "type": "array"
+                },
+                "fine_tuner": {
+                    "additionalProperties": {
+                        "type": "number"
+                    },
+                    "default": {},
+                    "title": "Fine Tuner",
+                    "type": "object"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "title": "AltarServer",
+            "type": "object"
+        },
+        "Vacation": {
+            "description": "The vacation class.",
+            "properties": {
+                "start": {
+                    "format": "date",
+                    "title": "Start",
+                    "type": "string"
+                },
+                "end": {
+                    "format": "date",
+                    "title": "End",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "start",
+                "end"
+            ],
+            "title": "Vacation",
+            "type": "object"
+        }
+    },
+    "description": "The altar server class contains the queues that manage the servers.\n\nThere is a queue for all servers and one for those that were chosen for a certain mass,\nbut could not be assigned due to different reasons. This waiting queue has priority over the\nother queues. The high mass priority queue is for servers which should preferred at high\nmasses.",
+    "properties": {
+        "altar_servers": {
+            "items": {
+                "$ref": "#/$defs/AltarServer"
+            },
+            "title": "Altar Servers",
+            "type": "array"
+        }
+    },
+    "required": [
+        "altar_servers"
+    ],
+    "title": "AltarServers",
+    "type": "object"
+}
