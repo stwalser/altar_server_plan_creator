@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 
 class WelcomeText(BaseModel):
-    """The welcom text of the plan."""
+    """The welcome text of the plan."""
 
     greeting: str
     body: list[str]
