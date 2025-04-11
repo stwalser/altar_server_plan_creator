@@ -27,15 +27,15 @@ class SchedulingUnit:
         """
         return len(self.servers)
 
-    def avoid(self: "SchedulingUnit", event_id: str) -> list:
+    def avoid(self: "SchedulingUnit", event_id: str) -> set:
         """Get the masses on which this scheduling unit can't be scheduled.
 
         :return: The list of masses on which this scheduling unit can't be scheduled.
         """
         avoid = set()
         for server in self.servers:
-            for id, value in server.fine_tuner.items():
-                if event_id == id:
+            for identifier, value in server.fine_tuner.items():
+                if event_id == identifier:
                     avoid.add(value)
         return avoid
 

@@ -2,7 +2,7 @@
 
 import copy
 import itertools
-import random
+import secrets
 import statistics
 
 from altar_servers.altar_server import AltarServer
@@ -21,6 +21,22 @@ def get_distribution(altar_servers: list) -> list:
     ]
 
 
+def su_is_considered(su: SchedulingUnit, event_id: str) -> bool:
+    """Check if a scheduling unit should be considered for an event.
+
+    :param su: The scheduling unit to check.
+    :param event_id: The id of the event to check.
+    :return: True, if the scheduling unit should be considered. False, otherwise.
+    """
+    values = []
+    for server in su.servers:
+        if event_id in server.fine_tuner:
+            values.append(server.fine_tuner[event_id])
+        else:
+            values.append(1)
+    return (secrets.randbelow(100) / 100) <= statistics.mean(values)
+
+
 class AltarServers(BaseModel):
     """The altar server class contains the queues that manage the servers.
 
@@ -32,10 +48,10 @@ class AltarServers(BaseModel):
 
     altar_servers: list[AltarServer]
 
-    def model_post_init(self: "AltarServers", __context) -> None:
+    def model_post_init(self: "AltarServers", *_: str) -> None:
         """Create the altar servers object, which holds the different queues.
 
-        :param raw_altar_servers: The dictionary containing all the altar servers and their info.
+        :param context: The pydantic context
         """
         self.__add_siblings_to_objects()
         self.__scheduling_units = []
@@ -44,7 +60,11 @@ class AltarServers(BaseModel):
         self.__already_chosen_this_round = []
 
     @property
-    def scheduling_units(self: "AltarServers"):
+    def scheduling_units(self: "AltarServers") -> list:
+        """Get all scheduling units.
+
+        :return: The scheduling units.
+        """
         return self.__scheduling_units
 
     def empty_already_chosen_list(self: "AltarServers") -> None:
@@ -58,7 +78,14 @@ class AltarServers(BaseModel):
                 return server
         raise KeyError(name)
 
-    def clear_state(self: "AltarServers"):
+    def clear_state(self: "AltarServers") -> None:
+        """Reset all variables marking the state of the assignment process.
+
+        Delete the list containing the servers already assigned this round and
+        remove all the dates assigned to a server.
+
+        :return:
+        """
         self.empty_already_chosen_list()
 
         for server in self.altar_servers:
@@ -70,7 +97,16 @@ class AltarServers(BaseModel):
         day: Day,
         mass: HolyMass,
         potential_weekday_id: int | None,
-    ):
+    ) -> bool:
+        """Check if a scheduling unit is available at a certain mass.
+
+        :param su: The scheduling unit to check.
+        :param day: The day to check.
+        :param mass: The mass to check.
+        :param potential_weekday_id: The weekday id of an event if the time of the mass matches
+        with a weekday mass.
+        :return:
+        """
         return (
             su not in self.__already_chosen_this_round
             and su.is_available_on(day.date)
@@ -78,15 +114,6 @@ class AltarServers(BaseModel):
             and day.servers_of_su_not_assigned(su)
             and (mass.event.location is None or mass.event.location in su.locations)
         )
-    
-    def su_is_considered(self: "AltarServers", su: SchedulingUnit, event_id: str):
-        values = []
-        for server in su.servers:
-            if event_id in server.fine_tuner:
-                values.append(server.fine_tuner[event_id])
-            else:
-                values.append(1)
-        return random.uniform(0, 1) <= statistics.mean(values)
 
     def __create_scheduling_units(self: "AltarServers") -> None:
         """Create scheduling units which group siblings and servers that want to server together."""
@@ -107,6 +134,11 @@ class AltarServers(BaseModel):
                 altar_server.sibling_names = object_list
 
     def get_available_scheduling_units(self: "AltarServers", event: Event) -> list:
+        """Get the scheduling units available at a certain event.
+
+        :param event: The event under consideration.
+        :return: A list container all available scheduling units.
+        """
         return list(filter(lambda x: all(x.avoid(event.id)), self.__scheduling_units))
 
     def assign_scheduling_unit(

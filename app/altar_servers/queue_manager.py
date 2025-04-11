@@ -1,3 +1,5 @@
+"""The queue manager module."""
+
 import random
 from collections import deque
 
@@ -16,7 +18,16 @@ def list_to_queue(collection1: list, collection: deque) -> None:
 
 
 class QueueManager:
-    def __init__(self: "QueueManager", event_calendar: EventCalendar, altar_servers: AltarServers):
+    """The queue manager."""
+
+    def __init__(
+        self: "QueueManager", event_calendar: EventCalendar, altar_servers: AltarServers
+    ) -> None:
+        """Create a QueueManager.
+
+        :param event_calendar: The event calendar.
+        :param altar_servers: The altar servers.
+        """
         self.event_calendar = event_calendar
         self.__altar_servers = altar_servers
 
@@ -101,7 +112,7 @@ class QueueManager:
         """
         count = 0
         day_queue = self.__get_queue_for_event(mass.event)
-        
+
         while True:
             try:
                 next_su: SchedulingUnit = day_queue.popleft()
@@ -112,7 +123,9 @@ class QueueManager:
             potential_weekday_id = self.event_calendar.custom_event_is_weekday_in_special(
                 day.date, mass.event.time
             )
-            if self.__altar_servers.su_is_available_at(next_su, day, mass, potential_weekday_id) and self.__altar_servers.su_is_considered(next_su, mass.event.id):
+            if self.__altar_servers.su_is_available_at(
+                next_su, day, mass, potential_weekday_id
+            ) and self.__altar_servers.su_is_considered(next_su, mass.event.id):
                 break
 
             count += 1
