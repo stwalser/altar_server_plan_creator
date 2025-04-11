@@ -1,0 +1,54 @@
+{
+    "$defs": {
+        "WelcomeText": {
+            "description": "The welcom text of the plan.",
+            "properties": {
+                "greeting": {
+                    "title": "Greeting",
+                    "type": "string"
+                },
+                "body": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Body",
+                    "type": "array"
+                },
+                "dismissal": {
+                    "title": "Dismissal",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "greeting",
+                "body",
+                "dismissal"
+            ],
+            "title": "WelcomeText",
+            "type": "object"
+        }
+    },
+    "description": "The plan info.",
+    "properties": {
+        "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+        },
+        "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+        },
+        "welcome_text": {
+            "$ref": "#/$defs/WelcomeText"
+        }
+    },
+    "required": [
+        "start_date",
+        "end_date",
+        "welcome_text"
+    ],
+    "title": "PlanInfo",
+    "type": "object"
+}
