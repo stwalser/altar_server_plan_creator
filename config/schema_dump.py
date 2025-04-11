@@ -1,3 +1,5 @@
+"""Dump the JSON schemas of the three config files."""
+
 import json
 from pathlib import Path
 
@@ -6,7 +8,8 @@ from events.event_calendar import EventCalendar
 from plan_info.plan_info import PlanInfo
 
 
-def main():
+def main() -> None:
+    """Dump the JSON schemas into the config folder."""
     with Path("altar_servers.config.json").open("w") as file:
         json.dump(AltarServers.model_json_schema(), file, indent=4)
 
@@ -15,6 +18,7 @@ def main():
 
     with Path("plan_info.config.json").open("w") as file:
         json.dump(PlanInfo.model_json_schema(), file, indent=4)
+
 
 if __name__ == "__main__":
     main()
