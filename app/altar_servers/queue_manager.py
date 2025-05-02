@@ -81,7 +81,7 @@ class QueueManager:
                 list_to_queue(self.__regular_queues_cache[key], self.__regular_queues[key])
                 return
 
-        list_to_queue(self.__scheduling_units, self.__other_queue)
+        list_to_queue(self.__altar_servers.scheduling_units, self.__other_queue)
 
     def __get_queue_for_event(self: "AltarServers", event: Event) -> deque:
         """Get the queue from which the servers must be taken for a given event.
@@ -125,7 +125,7 @@ class QueueManager:
             )
             if self.__altar_servers.su_is_available_at(
                 next_su, day, mass, potential_weekday_id
-            ) and self.__altar_servers.su_is_considered(next_su, mass.event.id):
+            ) and next_su.is_considered(mass.event.id):
                 break
 
             count += 1

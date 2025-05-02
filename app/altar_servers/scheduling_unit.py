@@ -1,6 +1,8 @@
 """A module that contains the scheduling unit class, which is used in queues."""
 
 import datetime
+import secrets
+import statistics
 
 
 class SchedulingUnit:
@@ -54,6 +56,21 @@ class SchedulingUnit:
         :return: True, if the server is available at a certain date. Otherwise, False.
         """
         return all(server.is_available(date) for server in self.servers)
+
+    def is_considered(self: "SchedulingUnit", event_id: str) -> bool:
+        """Check if a scheduling unit should be considered for an event.
+
+        :param su: The scheduling unit to check.
+        :param event_id: The id of the event to check.
+        :return: True, if the scheduling unit should be considered. False, otherwise.
+        """
+        values = []
+        for server in self.servers:
+            if event_id in server.fine_tuner:
+                values.append(server.fine_tuner[event_id])
+            else:
+                values.append(1)
+        return (secrets.randbelow(100) / 100) <= statistics.mean(values)
 
     def __str__(self: "SchedulingUnit") -> str:
         """Return string representation of the object."""

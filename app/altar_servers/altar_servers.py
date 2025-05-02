@@ -2,7 +2,6 @@
 
 import copy
 import itertools
-import secrets
 import statistics
 
 from altar_servers.altar_server import AltarServer
@@ -19,22 +18,6 @@ def get_distribution(altar_servers: list) -> list:
         (server.name, len(server.service_dates))
         for server in sorted(altar_servers, key=lambda x: x.name)
     ]
-
-
-def su_is_considered(su: SchedulingUnit, event_id: str) -> bool:
-    """Check if a scheduling unit should be considered for an event.
-
-    :param su: The scheduling unit to check.
-    :param event_id: The id of the event to check.
-    :return: True, if the scheduling unit should be considered. False, otherwise.
-    """
-    values = []
-    for server in su.servers:
-        if event_id in server.fine_tuner:
-            values.append(server.fine_tuner[event_id])
-        else:
-            values.append(1)
-    return (secrets.randbelow(100) / 100) <= statistics.mean(values)
 
 
 class AltarServers(BaseModel):
