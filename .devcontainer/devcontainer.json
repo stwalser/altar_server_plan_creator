@@ -1,6 +1,7 @@
 {
     "name": "Altar-Server-Plan-Creator",
     "build": {
-      "dockerfile": "../Dockerfile"
+      "dockerfile": "Dockerfile",
+      context: "../"
     }
   }
