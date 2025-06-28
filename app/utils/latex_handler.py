@@ -61,7 +61,7 @@ def generate_pdf(
     """Generate a PDF of the plan.
 
     First the welcome text is added. Then the table with all masses and servers is added. The
-    tabular object is changed to a supertabular, which allows to span over multiple pages.
+    tabular object is changed to a super tabular, which allows spanning over multiple pages.
     :param days: The calendar days.
     :param start_date: The start date of the plan.
     :param end_date: The end date of the plan.

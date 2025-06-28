@@ -2,8 +2,9 @@
 
 import copy
 import logging
-import pathlib
+import subprocess
 import sys
+from pathlib import Path
 
 from altar_servers.altar_servers import AltarServers, get_distribution
 from altar_servers.queue_manager import QueueManager
@@ -24,37 +25,56 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(levelname)s - %(message)s")
     logger.info("Willkommen beim %s", PROGRAM_NAME)
 
-    logger.info("Konfiguration wird geladen...")
-    raw_event_calendar = pathlib.Path("config/holy_masses.json").read_text()
-    event_calendar = EventCalendar.model_validate_json(raw_event_calendar)
+    if Path.exists(Path("output/plan.tex")):
+        logger.info("Plan existiert bereits. Kompilere erneut ...")
+        try:
+            # ruff: noqa: S603
+            subprocess.run(
+                [
+                    "/usr/bin/pdflatex",
+                    "-interaction=nonstopmode",
+                    "-output-directory=output",
+                    "output/plan.tex",
+                ],
+                check=True,
+            )
+            logger.info("Abgeschlossen")
+        except subprocess.CalledProcessError as e:
+            logger.info("Fehler: %s", e)
+    else:
+        logger.info("Konfiguration wird geladen...")
+        raw_event_calendar = Path("config/holy_masses.json").read_text()
+        event_calendar = EventCalendar.model_validate_json(raw_event_calendar)
 
-    raw_plan_info = pathlib.Path("config/plan_info.json").read_text()
-    plan_info = PlanInfo.model_validate_json(raw_plan_info)
+        raw_plan_info = Path("config/plan_info.json").read_text()
+        plan_info = PlanInfo.model_validate_json(raw_plan_info)
 
-    logger.info("Kalender wird erstellet...")
-    calendar = create_calendar(plan_info.start_date, plan_info.end_date, event_calendar)
-    logger.info("Abgeschlossen")
-    logger.info("Ministranten werden erstellt...")
-    raw_altar_servers = pathlib.Path("config/altar_servers.json").read_text()
-    altar_servers = AltarServers.model_validate_json(raw_altar_servers)
-    logger.info("Abgeschlossen")
-    logger.info("Warteschlangen werden erstellt...")
-    queue_manager = QueueManager(event_calendar, altar_servers)
-    logger.info("Abgeschlossen")
+        logger.info("Kalender wird erstellet...")
+        calendar = create_calendar(plan_info.start_date, plan_info.end_date, event_calendar)
+        logger.info("Abgeschlossen")
+        logger.info("Ministranten werden erstellt...")
+        raw_altar_servers = Path("config/altar_servers.json").read_text()
+        altar_servers = AltarServers.model_validate_json(raw_altar_servers)
+        logger.info("Abgeschlossen")
+        logger.info("Warteschlangen werden erstellt...")
+        queue_manager = QueueManager(event_calendar, altar_servers)
+        logger.info("Abgeschlossen")
 
-    logger.info("Ministranten werden eingeteilt...")
+        logger.info("Ministranten werden eingeteilt...")
 
-    final_altar_servers, final_calendar = optimize_assignments(
-        calendar, queue_manager, altar_servers
-    )
+        final_altar_servers, final_calendar = optimize_assignments(
+            calendar, queue_manager, altar_servers
+        )
 
-    logger.info("Statistik")
-    for server in get_distribution(final_altar_servers):
-        logger.info(server)
+        logger.info("Statistik")
+        for server in get_distribution(final_altar_servers):
+            logger.info(server)
 
-    logger.info("PDF wird erstellt")
-    generate_pdf(final_calendar, plan_info.start_date, plan_info.end_date, plan_info.welcome_text)
-    logger.info("Abgeschlossen")
+        logger.info("PDF wird erstellt")
+        generate_pdf(
+            final_calendar, plan_info.start_date, plan_info.end_date, plan_info.welcome_text
+        )
+        logger.info("Abgeschlossen")
 
 
 def optimize_assignments(
