@@ -1,8 +1,6 @@
 """A module that contains the scheduling unit class, which is used in queues."""
 
 import datetime
-import secrets
-import statistics
 
 
 class SchedulingUnit:
@@ -29,17 +27,28 @@ class SchedulingUnit:
         """
         return len(self.servers)
 
-    def avoid(self: "SchedulingUnit", event_id: str) -> set:
+    def avoid(self: "SchedulingUnit") -> set:
         """Get the masses on which this scheduling unit can't be scheduled.
 
         :return: The list of masses on which this scheduling unit can't be scheduled.
         """
-        avoid = set()
+        avoid_set = set()
         for server in self.servers:
-            for identifier, value in server.fine_tuner.items():
-                if event_id == identifier:
-                    avoid.add(value)
-        return avoid
+            avoid_set.update(server.avoid)
+        return avoid_set
+
+    def vacations(self: "SchedulingUnit") -> set:
+        vacations = set()
+        for server in self.servers:
+            for vacation in server.vacations:
+                day_difference = vacation.end - vacation.start
+                vacations.update(
+                    [
+                        vacation.start + datetime.timedelta(days=x)
+                        for x in range(max(1, day_difference.days))
+                    ]
+                )
+        return vacations
 
     @property
     def locations(self: "SchedulingUnit") -> list:
@@ -48,29 +57,6 @@ class SchedulingUnit:
         :return:
         """
         return self.servers[0].locations
-
-    def is_available_on(self: "SchedulingUnit", date: datetime.date) -> bool:
-        """Check if all servers of the scheduling unit are available.
-
-        :param date: The date to check.
-        :return: True, if the server is available at a certain date. Otherwise, False.
-        """
-        return all(server.is_available(date) for server in self.servers)
-
-    def is_considered(self: "SchedulingUnit", event_id: str) -> bool:
-        """Check if a scheduling unit should be considered for an event.
-
-        :param su: The scheduling unit to check.
-        :param event_id: The id of the event to check.
-        :return: True, if the scheduling unit should be considered. False, otherwise.
-        """
-        values = []
-        for server in self.servers:
-            if event_id in server.fine_tuner:
-                values.append(server.fine_tuner[event_id])
-            else:
-                values.append(1)
-        return (secrets.randbelow(100) / 100) <= statistics.mean(values)
 
     def __str__(self: "SchedulingUnit") -> str:
         """Return string representation of the object."""

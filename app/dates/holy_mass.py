@@ -7,12 +7,14 @@ from events.event import Event
 class HolyMass:
     """The representation of a holy mass."""
 
-    def __init__(self: "HolyMass", event: Event) -> None:
+    def __init__(self: "HolyMass", event: Event, servers=None) -> None:
         """Create a holy mass object.
 
         :param event: The event object associated with this holy mass.
         """
-        self.servers = []
+        if servers is None:
+            servers = []
+        self.servers = servers
         self.event = event
         self.day = None
 
@@ -22,6 +24,8 @@ class HolyMass:
         :param scheduling_unit: The scheduling unit to add the minis from.
         """
         self.servers.extend(scheduling_unit.servers)
+        for server in scheduling_unit.servers:
+            server.service_dates.append(self.day.date)
 
     def __str__(self: "HolyMass") -> str:
         """Return a string representation of the holy mass."""

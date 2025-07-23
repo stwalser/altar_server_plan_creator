@@ -6,9 +6,6 @@ import statistics
 
 from altar_servers.altar_server import AltarServer
 from altar_servers.scheduling_unit import SchedulingUnit
-from dates.day import Day
-from dates.holy_mass import HolyMass
-from events.event import Event
 from pydantic import BaseModel
 
 
@@ -40,8 +37,6 @@ class AltarServers(BaseModel):
         self.__scheduling_units = []
         self.__create_scheduling_units()
 
-        self.__already_chosen_this_round = []
-
     @property
     def scheduling_units(self: "AltarServers") -> list:
         """Get all scheduling units.
@@ -50,53 +45,18 @@ class AltarServers(BaseModel):
         """
         return self.__scheduling_units
 
-    def empty_already_chosen_list(self: "AltarServers") -> None:
-        """Delete all entries from the already chosen list."""
-        self.__already_chosen_this_round = []
+    def get_su_from(self: "AltarServers", names: list) -> SchedulingUnit | None:
+        for su in self.scheduling_units:
+            if su.__repr__() == names:
+                return su
+        return None
 
-    def get_server_by_name(self, name: str) -> AltarServer:
-        """Get the server object by its name."""
-        for server in self.altar_servers:
-            if server.name == name:
-                return server
-        raise KeyError(name)
-
-    def clear_state(self: "AltarServers") -> None:
-        """Reset all variables marking the state of the assignment process.
-
-        Delete the list containing the servers already assigned this round and
-        remove all the dates assigned to a server.
-
-        :return:
-        """
-        self.empty_already_chosen_list()
-
-        for server in self.altar_servers:
-            server.service_dates = []
-
-    def su_is_available_at(
-        self: "AltarServers",
-        su: SchedulingUnit,
-        day: Day,
-        mass: HolyMass,
-        potential_weekday_id: int | None,
-    ) -> bool:
-        """Check if a scheduling unit is available at a certain mass.
-
-        :param su: The scheduling unit to check.
-        :param day: The day to check.
-        :param mass: The mass to check.
-        :param potential_weekday_id: The weekday id of an event if the time of the mass matches
-        with a weekday mass.
-        :return:
-        """
-        return (
-            su not in self.__already_chosen_this_round
-            and su.is_available_on(day.date)
-            and (potential_weekday_id is None or potential_weekday_id not in su.avoid)
-            and day.servers_of_su_not_assigned(su)
-            and (mass.event.location is None or mass.event.location in su.locations)
-        )
+    def get_n_servers_available_at(self: "AltarServers", event_id: int) -> int:
+        count = 0
+        for su in self.scheduling_units:
+            if all([event_id not in server.avoid for server in su.servers]):
+                count += len(su.servers)
+        return count
 
     def __create_scheduling_units(self: "AltarServers") -> None:
         """Create scheduling units which group siblings and servers that want to server together."""
@@ -115,39 +75,6 @@ class AltarServers(BaseModel):
                     for sibling_name in altar_server.sibling_names
                 ]
                 altar_server.sibling_names = object_list
-
-    def get_available_scheduling_units(self: "AltarServers", event: Event) -> list:
-        """Get the scheduling units available at a certain event.
-
-        :param event: The event under consideration.
-        :return: A list container all available scheduling units.
-        """
-        return list(filter(lambda x: all(x.avoid(event.id)), self.__scheduling_units))
-
-    def assign_scheduling_unit(
-        self: "AltarServers", scheduling_unit: SchedulingUnit, mass: HolyMass
-    ) -> int:
-        """Assign a server without siblings to a mass.
-
-        :param scheduling_unit: The scheduling unit.
-        :param mass: The mass to assign the server to.
-        :return: 1 to increase the counter.
-        """
-        mass.add_scheduling_unit(scheduling_unit)
-        self.__choose_for(scheduling_unit, mass)
-        return len(scheduling_unit)
-
-    def __choose_for(self: "AltarServers", su: SchedulingUnit, mass: HolyMass) -> None:
-        """Add a server to the already chosen list.
-
-        If the length of the list equals the number of the servers, the list is cleared.
-        :param su: The scheduling unit to add extend the list for.
-        """
-        for server in su.servers:
-            server.service_dates.append(mass.day.date)
-        self.__already_chosen_this_round.append(su)
-        if len(self.__already_chosen_this_round) == len(self.altar_servers):
-            self.empty_already_chosen_list()
 
     def get_copy(self: "AltarServers") -> list[AltarServer]:
         """Get a copy of the altar server list.

@@ -5,13 +5,20 @@ description = "A tool to create schedules for altar servers"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "annotated-types>=0.7.0",
     "babel>=2.17.0",
+    "ordered-set>=4.1.0",
     "pydantic>=2.11.2",
     "pydantic-core>=2.33.1",
     "pylatex>=1.4.2",
     "python-dateutil>=2.9.0.post0",
     "ruff>=0.11.4",
+    "six>=1.17.0",
     "tqdm>=4.67.1",
+    "typing-extensions>=4.13.1",
+    "typing-inspection>=0.4.0",
+    "z3>=0.2.0",
+    "z3-solver>=4.15.1.0",
 ]
 
 [tool.ruff]
