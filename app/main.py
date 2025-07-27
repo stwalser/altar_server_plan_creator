@@ -9,7 +9,8 @@ from pathlib import Path
 from altar_servers.altar_servers import AltarServers, get_distribution
 from altar_servers.queue_manager import QueueManager
 from altar_servers.server_handler import assign_servers
-from dates.date_handler import clear_calendar, create_calendar
+from dates.calendar import Calendar
+from dates.date_handler import create_calendar
 from events.event_calendar import EventCalendar
 from plan_info.plan_info import PlanInfo
 from tqdm import tqdm
@@ -78,7 +79,7 @@ def main() -> None:
 
 
 def optimize_assignments(
-    calendar: list,
+    calendar: Calendar,
     queue_manager: QueueManager,
     altar_servers: AltarServers,
     event_calendar: EventCalendar,
@@ -108,7 +109,7 @@ def optimize_assignments(
         iterations.update(1)
         sys.stdout.flush()
 
-        clear_calendar(calendar)
+        calendar.clear()
         queue_manager.clear_state()
     return final_altar_servers, final_calendar
 

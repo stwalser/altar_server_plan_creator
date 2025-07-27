@@ -3,17 +3,18 @@
 from altar_servers.altar_servers import AltarServers
 from altar_servers.queue_manager import QueueManager
 from altar_servers.scheduling_unit import SchedulingUnit
-from dates.date_handler import clear_calendar
+from dates.calendar import Calendar
 from dates.day import Day
 from dates.holy_mass import HolyMass
 from utils.exceptions import BadSituationError
 
 
 def assign_servers(
-    calendar: list, queue_manager: QueueManager, altar_servers: AltarServers
+    calendar: Calendar, queue_manager: QueueManager, altar_servers: AltarServers
 ) -> None:
     """Create a single plan by assigning servers until all masses are covered.
 
+    :param queue_manager:
     :param calendar: The event calendar.
     :param altar_servers: The altar servers object.
     """
@@ -21,7 +22,7 @@ def assign_servers(
         try:
             _assign_altar_servers(calendar, queue_manager, altar_servers)
         except BadSituationError:
-            clear_calendar(calendar)
+            calendar.clear()
             queue_manager.clear_state()
             continue
         break
@@ -52,14 +53,14 @@ def _pre_assign(mass: HolyMass, day: Day, altar_servers: AltarServers) -> int:
 
 
 def _assign_altar_servers(
-    calendar: list, queue_manager: QueueManager, altar_servers: AltarServers
+    calendar: Calendar, queue_manager: QueueManager, altar_servers: AltarServers
 ) -> None:
     """Assign altar servers to a calendar consisting of multiple masses.
 
     :param calendar: The list of all days, where a mass takes place.
     :param servers: Wrapper object of all servers.
     """
-    for day in calendar:
+    for day in calendar.days:
         for mass in sorted(day.masses, key=lambda x: x.event.time):
             n_servers_assigned = _pre_assign(mass, day, altar_servers)
             did_not_fit = []

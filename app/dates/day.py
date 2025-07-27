@@ -39,6 +39,12 @@ class Day:
         """
         return all(all(server not in mass.servers for mass in self.masses) for server in su.servers)
 
+    def get_mass_at(self: "Day", time: datetime.time) -> HolyMass | None:
+        for mass in self.masses:
+            if mass.event.time == datetime.strptime(time, "%H:%M:%S").time():
+                return mass
+        return None
+
     def __str__(self: "Day") -> str:
         """Return a string representation of the day."""
         return f"{self.date} - {self.event_day} - {self.masses}"

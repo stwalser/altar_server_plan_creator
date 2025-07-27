@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from babel.dates import format_date, format_time
+from dates.calendar import Calendar
 from dates.day import Day
 from plan_info.plan_info import WelcomeText
 from pylatex import Command, Document, MultiColumn, NewPage, NoEscape, Tabular
@@ -80,13 +81,13 @@ def generate_pdf(
     doc.generate_pdf("output/plan", clean_tex=False)
 
 
-def fill_document(table: Tabular, days: list) -> None:
+def fill_document(table: Tabular, calendar: Calendar) -> None:
     """Add the masses to the document.
 
     :param table: The table containing the masses and servers.
     :param days: The calendar days.
     """
-    for day in days:
+    for day in calendar.days:
         conditional_hline_start(day, table)
         table_row = (format_date(day.date, "EEE dd.LL.", locale="de"),)
         for i, mass in enumerate(sorted(day.masses, key=lambda x: x.event.time)):
