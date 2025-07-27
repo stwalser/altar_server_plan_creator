@@ -2,7 +2,6 @@
 
 from datetime import datetime
 
-from altar_servers.scheduling_unit import SchedulingUnit
 from dates.holy_mass import HolyMass
 from events.event_day import EventDay
 
@@ -29,6 +28,12 @@ class Day:
         """
         mass.day = self
         self.masses.append(mass)
+
+    def get_mass_at(self: "Day", time: datetime.time) -> HolyMass | None:
+        for mass in self.masses:
+            if mass.event.time == datetime.strptime(time, "%H:%M:%S").time():
+                return mass
+        return None
 
     def __str__(self: "Day") -> str:
         """Return a string representation of the day."""

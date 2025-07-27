@@ -4,25 +4,10 @@ from z3.z3 import Int, Sum, Or, If, And, Solver, unsat, unknown
 
 from altar_servers.altar_servers import AltarServers
 from altar_servers.scheduling_unit import SchedulingUnit
-from dates.day import Day
-from dates.holy_mass import HolyMass
+from dates.calendar import Calendar
 
 MAXIMUM_PER_PLAN = 6
 MINIMUM_ID_CAP = 3
-
-
-def get_day_from(calendar: list, date: str) -> Day | None:
-    for day in calendar:
-        if day.date == datetime.datetime.strptime(date, "%Y-%m-%d").date():
-            return day
-    return None
-
-
-def get_mass_from(day: Day, time: datetime.datetime.time) -> HolyMass | None:
-    for mass in day.masses:
-        if mass.event.time == datetime.datetime.strptime(time, "%H:%M:%S").time():
-            return mass
-    return None
 
 
 def get_day_stamp_from_date(day: datetime.datetime.date) -> int:
@@ -42,14 +27,14 @@ def get_solver() -> Solver:
     return solver
 
 
-def solve(calendar: list, altar_servers: AltarServers, min_masses_between_services: int):
+def solve(calendar: Calendar, altar_servers: AltarServers, min_masses_between_services: int):
     solver = get_solver()
 
     while True:
         date_x_id = []
         date_x_su = []
-        start_date = calendar[0].date
-        for day in calendar:
+        start_date = calendar.days[0].date
+        for day in calendar.days:
             for mass in sorted(day.masses, key=lambda x: x.event.time):
                 id_var = Int(f"{mass.day.date}_{mass.event.time}")
                 solver.add(id_var == mass.event.id)
@@ -61,9 +46,9 @@ def solve(calendar: list, altar_servers: AltarServers, min_masses_between_servic
                     new_mass_x_name.append(name_var)
 
                     if (
-                        mass.event.id in su.avoid()
-                        or mass.day.date in su.vacations()
-                        or (mass.event.location and mass.event.location not in su.locations)
+                            mass.event.id in su.avoid()
+                            or mass.day.date in su.vacations()
+                            or (mass.event.location and mass.event.location not in su.locations)
                     ):
                         solver.add(name_var == 0)
                     elif any([server in mass.servers for server in su.servers]):
@@ -78,7 +63,7 @@ def solve(calendar: list, altar_servers: AltarServers, min_masses_between_servic
 
                 date_x_su.append(new_mass_x_name)
 
-        weeks_in_plan = int((calendar[-1].date - start_date).days / 7)
+        weeks_in_plan = int((calendar.days[-1].date - start_date).days / 7)
         for event_id in range(1, 4):
             limit = max(
                 MINIMUM_ID_CAP,
@@ -120,8 +105,8 @@ def solve(calendar: list, altar_servers: AltarServers, min_masses_between_servic
         for name_var in mass:
             if model[name_var].as_long() != 0:
                 var_split = name_var.decl().name().split("_")
-                day = get_day_from(calendar, var_split[0])
-                mass = get_mass_from(day, var_split[1])
+                day = calendar.get_day_for(var_split[0])
+                mass = day.get_mass_at(var_split[1])
                 names = var_split[2]
                 su: SchedulingUnit = altar_servers.get_su_from(names)
                 mass.add_scheduling_unit(su)
