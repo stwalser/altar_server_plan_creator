@@ -30,7 +30,6 @@ class SchedulingUnit:
         """
         return len(self.servers)
 
-
     @property
     def locations(self: "SchedulingUnit") -> list:
         """The locations the servers of this scheduling unit can be assigned to.

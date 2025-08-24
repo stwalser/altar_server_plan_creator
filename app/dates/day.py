@@ -16,6 +16,7 @@ class Day:
         :param date: The date of the day.
         :param event_day: The associated event day.
         """
+        self.date = None
         self.date = date
         self.event_day = event_day
         self.masses = []

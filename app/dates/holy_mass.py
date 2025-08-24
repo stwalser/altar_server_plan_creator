@@ -12,6 +12,7 @@ class HolyMass:
 
         :param event: The event object associated with this holy mass.
         """
+        self.event = None
         self.servers = []
         self.event = event
         self.day = None

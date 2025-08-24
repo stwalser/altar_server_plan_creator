@@ -1,7 +1,7 @@
 {
     "$defs": {
         "WelcomeText": {
-            "description": "The welcom text of the plan.",
+            "description": "The welcome text of the plan.",
             "properties": {
                 "greeting": {
                     "title": "Greeting",

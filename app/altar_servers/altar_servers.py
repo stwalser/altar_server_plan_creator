@@ -8,7 +8,6 @@ from altar_servers.altar_server import AltarServer
 from altar_servers.scheduling_unit import SchedulingUnit
 from dates.day import Day
 from dates.holy_mass import HolyMass
-from events.event import Event
 from pydantic import BaseModel
 
 
@@ -79,21 +78,18 @@ class AltarServers(BaseModel):
         su: SchedulingUnit,
         day: Day,
         mass: HolyMass,
-        potential_weekday_id: int | None,
     ) -> bool:
         """Check if a scheduling unit is available at a certain mass.
 
         :param su: The scheduling unit to check.
         :param day: The day to check.
         :param mass: The mass to check.
-        :param potential_weekday_id: The weekday id of an event if the time of the mass matches
         with a weekday mass.
         :return:
         """
         return (
             su not in self.__already_chosen_this_round
             and su.is_available_on(day.date)
-            and (potential_weekday_id is None or potential_weekday_id not in su.avoid)
             and day.servers_of_su_not_assigned(su)
             and (mass.event.location is None or mass.event.location in su.locations)
         )
@@ -116,13 +112,13 @@ class AltarServers(BaseModel):
                 ]
                 altar_server.sibling_names = object_list
 
-    def get_available_scheduling_units(self: "AltarServers", event: Event) -> list:
+    def get_available_scheduling_units(self: "AltarServers", event_id: str) -> list:
         """Get the scheduling units available at a certain event.
 
-        :param event: The event under consideration.
+        :param event_id: The id of the event under consideration.
         :return: A list container all available scheduling units.
         """
-        return list(filter(lambda x: event.id not in x.avoid, self.__scheduling_units))
+        return list(filter(lambda x: event_id not in x.avoid, self.__scheduling_units))
 
     def assign_scheduling_unit(
         self: "AltarServers", scheduling_unit: SchedulingUnit, mass: HolyMass

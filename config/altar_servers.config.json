@@ -22,6 +22,14 @@
                     "default": [],
                     "title": "Siblings"
                 },
+                "avoid": {
+                    "default": [],
+                    "items": {
+                        "type": "integer"
+                    },
+                    "title": "Avoid",
+                    "type": "array"
+                },
                 "vacations": {
                     "default": [],
                     "items": {
@@ -46,14 +54,6 @@
                     },
                     "title": "Service Dates",
                     "type": "array"
-                },
-                "fine_tuner": {
-                    "additionalProperties": {
-                        "type": "number"
-                    },
-                    "default": {},
-                    "title": "Fine Tuner",
-                    "type": "object"
                 }
             },
             "required": [

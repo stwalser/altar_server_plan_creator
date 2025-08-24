@@ -15,7 +15,7 @@ from plan_info.plan_info import PlanInfo
 from tqdm import tqdm
 from utils.latex_handler import generate_pdf
 
-TOTAL_OPTIMIZE_ROUNDS = 100
+TOTAL_OPTIMIZE_ROUNDS = 500
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 
@@ -82,6 +82,7 @@ def optimize_assignments(
 ) -> tuple:
     """Create multiple plans until keep the one with the lowest score in number of services.
 
+    :param queue_manager:
     :param calendar: The calendar.
     :param altar_servers: The raw altar server dictionary.
     :return: The resulting altar servers object and the calendar object with all altar servers

@@ -7,6 +7,18 @@
                     "title": "Id",
                     "type": "string"
                 },
+                "treated_as": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Treated As"
+                },
                 "n_servers": {
                     "title": "N Servers",
                     "type": "integer"
