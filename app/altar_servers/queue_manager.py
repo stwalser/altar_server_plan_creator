@@ -123,9 +123,7 @@ class QueueManager:
             potential_weekday_id = self.event_calendar.custom_event_is_weekday_in_special(
                 day.date, mass.event.time
             )
-            if self.__altar_servers.su_is_available_at(
-                next_su, day, mass, potential_weekday_id
-            ) and next_su.is_considered(mass.event.id):
+            if self.__altar_servers.su_is_available_at(next_su, day, mass, potential_weekday_id):
                 break
 
             count += 1

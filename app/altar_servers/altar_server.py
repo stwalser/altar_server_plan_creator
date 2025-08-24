@@ -17,13 +17,10 @@ class AltarServer(BaseModel):
 
     name: str
     sibling_names: list[str] | None = Field(alias="siblings", default=[])
+    avoid: list[int] = []
     vacations: list[Vacation] = []
     locations: list[str] = []
     service_dates: list[datetime.date] = []
-    fine_tuner: dict[str, float] = {}
-    # If the value of an id is set to 0, it should be excluded from the queue.
-    # If it is greater than 0, it should be added and evaluated every time the server is drawn,
-    # if it is actually assigned.
 
     def is_available(self: "AltarServer", date: datetime.date) -> bool:
         """See if a server is available at a certain date due to vacations.

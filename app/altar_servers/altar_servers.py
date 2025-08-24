@@ -122,7 +122,7 @@ class AltarServers(BaseModel):
         :param event: The event under consideration.
         :return: A list container all available scheduling units.
         """
-        return list(filter(lambda x: all(x.avoid(event.id)), self.__scheduling_units))
+        return list(filter(lambda x: event.id not in x.avoid, self.__scheduling_units))
 
     def assign_scheduling_unit(
         self: "AltarServers", scheduling_unit: SchedulingUnit, mass: HolyMass
