@@ -10,6 +10,7 @@ class SchedulingUnit:
     """
 
     servers = None
+    avoid = set()
 
     def __init__(self: "SchedulingUnit", minis: list) -> None:
         """Create a scheduling unit object. It contains one or multiple minis.
@@ -19,6 +20,8 @@ class SchedulingUnit:
         :param minis: The list of minis.
         """
         self.servers: list = minis
+        for server in self.servers:
+            self.avoid = self.avoid.union(set(server.avoid))
 
     def __len__(self: "SchedulingUnit") -> int:
         """Get the number of minis in this scheduling unit.
@@ -27,16 +30,6 @@ class SchedulingUnit:
         """
         return len(self.servers)
 
-    @property
-    def avoid(self: "SchedulingUnit") -> list:
-        """Get the masses on which this scheduling unit can't be scheduled.
-
-        :return: The list of masses on which this scheduling unit can't be scheduled.
-        """
-        avoid = set()
-        for server in self.servers:
-            avoid = avoid.union(set(server.avoid))
-        return avoid
 
     @property
     def locations(self: "SchedulingUnit") -> list:
