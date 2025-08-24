@@ -1,13 +1,13 @@
-FROM python:3.13-slim
+FROM ghcr.io/astral-sh/uv:python3.13-trixie-slim
+LABEL authors="Stefan Walser"
 
 RUN apt-get update && \
     apt-get install -y latexmk texlive-latex-extra texlive-science git && \
     rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt ./
-RUN pip3 install -r requirements.txt && \
-    rm -rf /root/.cache/pip
+COPY pyproject.toml /
+RUN uv sync
 
 COPY app /app
 
-ENTRYPOINT ["python3", "app/main.py"]
+ENTRYPOINT ["uv", "run", "app/main.py"]
