@@ -17,10 +17,10 @@ class AltarServer(BaseModel):
 
     name: str
     sibling_names: list[str] | None = Field(alias="siblings", default=[])
-    avoid: list[int] = []
+    avoid: list[str] = []
     vacations: list[Vacation] = []
     locations: list[str] = []
-    service_dates: list[datetime.date] = []
+    services: list = []
 
     def is_available(self: "AltarServer", date: datetime.date) -> bool:
         """See if a server is available at a certain date due to vacations.

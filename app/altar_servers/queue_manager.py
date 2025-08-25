@@ -8,6 +8,7 @@ from altar_servers.scheduling_unit import SchedulingUnit
 from dates.day import Day
 from dates.holy_mass import HolyMass
 from events.event_calendar import EventCalendar
+from utils.exceptions import BadSituationError
 
 
 def list_to_queue(collection1: list, collection: deque) -> None:
@@ -69,7 +70,7 @@ class QueueManager:
 
         return self.__other_queue
 
-    def get_su_from_queues(self: "QueueManager", day: Day, mass: HolyMass) -> SchedulingUnit:
+    def get_su_from_queues(self: "QueueManager", day: Day, mass: HolyMass, did_not_fit: list) -> SchedulingUnit:
         """Get a server from the correct queue.
 
         If the queue for an event is empty, it is refilled. The server is only chosen, if it has not
@@ -77,6 +78,7 @@ class QueueManager:
         possible that a server was already assigned because of its sibling. The counter ensures that
         if all servers in the queue have been assigned already, the already assigned list is
         cleared.
+        :param did_not_fit:
         :param day: Holds the information about the day.
         :param mass: Holds the information about the mass.
         :return: The chosen server.
@@ -87,6 +89,9 @@ class QueueManager:
         while True:
             next_su: SchedulingUnit = day_queue.popleft()
             day_queue.append(next_su)  # Re-insert
+
+            if next_su in did_not_fit:
+                raise BadSituationError
 
             if self.__altar_servers.su_is_available_at(next_su, day, mass):
                 break

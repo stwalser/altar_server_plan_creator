@@ -25,7 +25,7 @@
                 "avoid": {
                     "default": [],
                     "items": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "title": "Avoid",
                     "type": "array"
@@ -46,13 +46,10 @@
                     "title": "Locations",
                     "type": "array"
                 },
-                "service_dates": {
+                "services": {
                     "default": [],
-                    "items": {
-                        "format": "date",
-                        "type": "string"
-                    },
-                    "title": "Service Dates",
+                    "items": {},
+                    "title": "Services",
                     "type": "array"
                 }
             },

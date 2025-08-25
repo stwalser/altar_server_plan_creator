@@ -15,7 +15,7 @@ from plan_info.plan_info import PlanInfo
 from tqdm import tqdm
 from utils.latex_handler import generate_pdf
 
-TOTAL_OPTIMIZE_ROUNDS = 500
+TOTAL_OPTIMIZE_ROUNDS = 5000
 PROGRAM_NAME = "Mini-Plan Ersteller"
 logger = logging.getLogger(PROGRAM_NAME)
 
@@ -63,7 +63,7 @@ def main() -> None:
         logger.info("Ministranten werden eingeteilt...")
 
         final_altar_servers, final_calendar = optimize_assignments(
-            calendar, queue_manager, altar_servers
+            calendar, queue_manager, altar_servers, event_calendar
         )
 
         logger.info("Statistik")
@@ -78,10 +78,14 @@ def main() -> None:
 
 
 def optimize_assignments(
-    calendar: list, queue_manager: QueueManager, altar_servers: AltarServers
+    calendar: list,
+    queue_manager: QueueManager,
+    altar_servers: AltarServers,
+    event_calendar: EventCalendar,
 ) -> tuple:
     """Create multiple plans until keep the one with the lowest score in number of services.
 
+    :param event_calendar:
     :param queue_manager:
     :param calendar: The calendar.
     :param altar_servers: The raw altar server dictionary.
@@ -90,17 +94,16 @@ def optimize_assignments(
     """
     final_calendar = None
     final_altar_servers = None
-    final_variance1 = 1000
-    final_variance2 = 1000
+    sum_of_variances_final = sys.maxsize
     iterations = tqdm(total=TOTAL_OPTIMIZE_ROUNDS)
-    for _ in range(TOTAL_OPTIMIZE_ROUNDS):
+    for i in range(TOTAL_OPTIMIZE_ROUNDS):
         assign_servers(calendar, queue_manager, altar_servers)
-        variance1, variance2 = altar_servers.calculate_statistics()
-        if variance1 < final_variance1 and variance2 < final_variance2:
+        sum_of_variances = sum(altar_servers.calculate_statistics(event_calendar))
+        if sum_of_variances < sum_of_variances_final:
+            logger.info(f"{i} WAS BETTER {sum_of_variances}")
             final_altar_servers = altar_servers.get_copy()
             final_calendar = copy.deepcopy(calendar)
-            final_variance1 = variance1
-            final_variance2 = variance2
+            sum_of_variances_final = sum_of_variances
 
         iterations.update(1)
         sys.stdout.flush()

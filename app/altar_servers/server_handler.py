@@ -6,10 +6,7 @@ from altar_servers.scheduling_unit import SchedulingUnit
 from dates.date_handler import clear_calendar
 from dates.day import Day
 from dates.holy_mass import HolyMass
-
-
-class BadSituationError(Exception):
-    """Raised when two siblings should be assigned to an event where only one spot is left."""
+from utils.exceptions import BadSituationError
 
 
 def assign_servers(
@@ -65,9 +62,10 @@ def _assign_altar_servers(
     for day in calendar:
         for mass in sorted(day.masses, key=lambda x: x.event.time):
             n_servers_assigned = _pre_assign(mass, day, altar_servers)
+            did_not_fit = []
             while n_servers_assigned < mass.event.n_servers:
-                chosen_su = queue_manager.get_su_from_queues(day, mass)
+                chosen_su = queue_manager.get_su_from_queues(day, mass, did_not_fit)
                 if n_servers_assigned + len(chosen_su) <= mass.event.n_servers:
                     n_servers_assigned += altar_servers.assign_scheduling_unit(chosen_su, mass)
                 else:
-                    raise BadSituationError
+                    did_not_fit.append(chosen_su)

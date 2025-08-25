@@ -3,18 +3,22 @@
 import copy
 import itertools
 import statistics
+from decimal import Decimal
+from fractions import Fraction
+from typing import Any
 
 from altar_servers.altar_server import AltarServer
 from altar_servers.scheduling_unit import SchedulingUnit
 from dates.day import Day
 from dates.holy_mass import HolyMass
+from events.event_calendar import EventCalendar
 from pydantic import BaseModel
 
 
 def get_distribution(altar_servers: list) -> list:
     """Get how often each server was assigned on the plan."""
     return [
-        (server.name, len(server.service_dates))
+        (server.name, len(server.services))
         for server in sorted(altar_servers, key=lambda x: x.name)
     ]
 
@@ -71,7 +75,7 @@ class AltarServers(BaseModel):
         self.empty_already_chosen_list()
 
         for server in self.altar_servers:
-            server.service_dates = []
+            server.services = []
 
     def su_is_available_at(
         self: "AltarServers",
@@ -140,7 +144,7 @@ class AltarServers(BaseModel):
         :param su: The scheduling unit to add extend the list for.
         """
         for server in su.servers:
-            server.service_dates.append(mass.day.date)
+            server.services.append(mass)
         self.__already_chosen_this_round.append(su)
         if len(self.__already_chosen_this_round) == len(self.altar_servers):
             self.empty_already_chosen_list()
@@ -152,19 +156,30 @@ class AltarServers(BaseModel):
         """
         return copy.deepcopy(self.altar_servers)
 
-    def calculate_statistics(self: "AltarServers") -> tuple:
+    def calculate_statistics(
+        self: "AltarServers", event_calendar: EventCalendar
+    ) -> list[float | Decimal | Fraction | Any]:
         """Get the variance of the number of services and of the distances between the services.
 
+        :param event_calendar:
         :param altar_servers: The altar servers object.
         :return: The variance of the number of services and of the distances between the services.
         """
-        distribution = []
+        general_distribution = []
+        id_distributions = {event_id: [] for event_id in event_calendar.get_list_of_weekday_ids()}
         distances = []
         for server in self.altar_servers:
-            distribution.append(len(server.service_dates))
+            general_distribution.append(len(server.services))
+            for event_id in id_distributions:
+                id_distributions[event_id].append(
+                    len(list(filter(lambda x: x.event.id == event_id, server.services)))
+                )
+
             distances.extend(
-                (date_pair[1] - date_pair[0]).days
-                for date_pair in itertools.pairwise(server.service_dates)
+                (mass_pair[1].day.date - mass_pair[0].day.date).days
+                for mass_pair in itertools.pairwise(server.services)
             )
 
-        return statistics.pvariance(distribution), statistics.pvariance(distances)
+        return [statistics.pvariance(general_distribution), statistics.pvariance(distances)] + [
+            statistics.pvariance(id_distributions[event_id]) for event_id in id_distributions
+        ]
