@@ -15,6 +15,7 @@ class Event(BaseModel):
     comment: str | None = None
     location: str | None = None
     servers: list[str] | dict[datetime.date, list[str]] | None = None
+    skip: list[datetime.date] = []
 
     def __str__(self: "Event") -> str:
         """Return string representation of the object."""

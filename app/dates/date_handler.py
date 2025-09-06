@@ -50,6 +50,7 @@ def create_calendar_day(date: datetime.time, event_day: EventDay) -> Day:
     calendar_day.name = event_day.name
 
     for event in event_day.events:
-        calendar_day.add_mass(HolyMass(event))
+        if date not in event.skip:
+            calendar_day.add_mass(HolyMass(event))
 
     return calendar_day
