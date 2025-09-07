@@ -59,14 +59,14 @@ class QueueManager:
         self.__other_queue.clear()
         list_to_queue(self.__altar_servers.scheduling_units, self.__other_queue)
 
-    def __get_queue_for_event(self: "AltarServers", treated_as_id: str) -> deque:
+    def __get_queue_for_event(self: "AltarServers", identifier: str) -> deque:
         """Get the queue from which the servers must be taken for a given event.
 
         :param treated_as_id: The event object.
         :return: The queue from which the servers must be taken.
         """
-        if treated_as_id in self.__regular_queues:
-            return self.__regular_queues[treated_as_id]
+        if identifier in self.__regular_queues:
+            return self.__regular_queues[identifier]
 
         return self.__other_queue
 
@@ -84,7 +84,7 @@ class QueueManager:
         :return: The chosen server.
         """
         count = 0
-        day_queue = self.__get_queue_for_event(mass.event.treated_as)
+        day_queue = self.__get_queue_for_event(mass.event.treated_as if mass.event.treated_as is not None else mass.event.id)
 
         while True:
             next_su: SchedulingUnit = day_queue.popleft()
