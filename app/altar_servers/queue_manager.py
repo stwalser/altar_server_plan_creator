@@ -70,7 +70,9 @@ class QueueManager:
 
         return self.__other_queue
 
-    def get_su_from_queues(self: "QueueManager", day: Day, mass: HolyMass, did_not_fit: list) -> SchedulingUnit:
+    def get_su_from_queues(
+        self: "QueueManager", day: Day, mass: HolyMass, did_not_fit: list
+    ) -> SchedulingUnit:
         """Get a server from the correct queue.
 
         If the queue for an event is empty, it is refilled. The server is only chosen, if it has not

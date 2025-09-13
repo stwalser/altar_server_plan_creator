@@ -24,8 +24,7 @@ class EventCalendar(BaseModel):
         """Get a list of all weekday ids."""
         ids = []
         for event_day in self.weekday.values():
-            for event in event_day.events:
-                ids.append(event.id)
+            ids.extend(event.id for event in event_day.events)
         return ids
 
     def get_event_day_by_date(self: "EventCalendar", date: datetime.date) -> EventDay | None:

@@ -101,7 +101,7 @@ def optimize_assignments(
         assign_servers(calendar, queue_manager, altar_servers)
         sum_of_variances = sum(altar_servers.calculate_statistics(event_calendar))
         if sum_of_variances < sum_of_variances_final:
-            logger.info(f"{i} WAS BETTER {sum_of_variances}")
+            logger.info("%d WAS BETTER %d", i, sum_of_variances)
             final_altar_servers = altar_servers.get_copy()
             final_calendar = copy.deepcopy(calendar)
             sum_of_variances_final = sum_of_variances

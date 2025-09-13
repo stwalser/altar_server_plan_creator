@@ -2,7 +2,7 @@ FROM ghcr.io/astral-sh/uv:python3.13-trixie-slim
 LABEL authors="Stefan Walser"
 
 RUN apt-get update && \
-    apt-get install -y latexmk texlive-latex-extra texlive-science git && \
+    apt-get install -y latexmk texlive-latex-extra texlive-science && \
     rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml /

@@ -170,8 +170,8 @@ class AltarServers(BaseModel):
         distances = []
         for server in self.altar_servers:
             general_distribution.append(len(server.services))
-            for event_id in id_distributions:
-                id_distributions[event_id].append(
+            for event_id, occurrences in id_distributions.items():
+                occurrences.append(
                     len(list(filter(lambda x: x.event.id == event_id, server.services)))
                 )
 
