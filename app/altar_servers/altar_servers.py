@@ -96,6 +96,7 @@ class AltarServers(BaseModel):
             and su.is_available_on(day.date)
             and day.servers_of_su_not_assigned(su)
             and (mass.event.location is None or mass.event.location in su.locations)
+            and (mass.event.id not in su.avoid)  # this is necessary because of special masses
         )
 
     def __create_scheduling_units(self: "AltarServers") -> None:
