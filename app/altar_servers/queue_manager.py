@@ -86,6 +86,7 @@ class QueueManager:
         :return: The chosen server.
         """
         count = 0
+        emptied = False
         day_queue = self.__get_queue_for_event(mass.event.treated_as if mass.event.treated_as is not None else mass.event.id)
 
         while True:
@@ -100,7 +101,10 @@ class QueueManager:
 
             count += 1
             if count > len(day_queue):
+                if emptied:
+                    raise BadSituationError
                 self.__altar_servers.empty_already_chosen_list()
+                emptied = True
 
         return next_su
 
