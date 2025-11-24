@@ -28,7 +28,7 @@ class AltarServers(BaseModel):
 
     There is a queue for all servers and one for those that were chosen for a certain mass,
     but could not be assigned due to different reasons. This waiting queue has priority over the
-    other queues. The high mass priority queue is for servers which should preferred at high
+    other queues. The high-mass priority queue is for servers that should be preferred at high
     masses.
     """
 
