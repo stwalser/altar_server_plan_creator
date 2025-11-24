@@ -51,6 +51,16 @@
                     "items": {},
                     "title": "Services",
                     "type": "array"
+                },
+                "no_special": {
+                    "default": false,
+                    "title": "No Special",
+                    "type": "boolean"
+                },
+                "no_regular": {
+                    "default": false,
+                    "title": "No Regular",
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -81,7 +91,7 @@
             "type": "object"
         }
     },
-    "description": "The altar server class contains the queues that manage the servers.\n\nThere is a queue for all servers and one for those that were chosen for a certain mass,\nbut could not be assigned due to different reasons. This waiting queue has priority over the\nother queues. The high mass priority queue is for servers which should preferred at high\nmasses.",
+    "description": "The altar server class contains the queues that manage the servers.\n\nThere is a queue for all servers and one for those that were chosen for a certain mass,\nbut could not be assigned due to different reasons. This waiting queue has priority over the\nother queues. The high-mass priority queue is for servers that should be preferred at high\nmasses.",
     "properties": {
         "altar_servers": {
             "items": {

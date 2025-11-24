@@ -57,7 +57,10 @@ class QueueManager:
             )
 
         self.__other_queue.clear()
-        list_to_queue(self.__altar_servers.scheduling_units, self.__other_queue)
+        list_to_queue(
+            list(filter(lambda x: not x.no_special, self.__altar_servers.scheduling_units)),
+            self.__other_queue,
+        )
 
     def __get_queue_for_event(self: "AltarServers", identifier: str) -> deque:
         """Get the queue from which the servers must be taken for a given event.
@@ -87,7 +90,9 @@ class QueueManager:
         """
         count = 0
         emptied = False
-        day_queue = self.__get_queue_for_event(mass.event.treated_as if mass.event.treated_as is not None else mass.event.id)
+        day_queue = self.__get_queue_for_event(
+            mass.event.treated_as if mass.event.treated_as is not None else mass.event.id
+        )
 
         while True:
             next_su: SchedulingUnit = day_queue.popleft()

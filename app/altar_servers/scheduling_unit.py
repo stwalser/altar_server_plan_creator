@@ -11,6 +11,8 @@ class SchedulingUnit:
 
     servers = None
     avoid = set()
+    no_special = False
+    no_regular = False
 
     def __init__(self: "SchedulingUnit", minis: list) -> None:
         """Create a scheduling unit object. It contains one or multiple minis.
@@ -22,6 +24,8 @@ class SchedulingUnit:
         self.servers: list = minis
         for server in self.servers:
             self.avoid = self.avoid.union(set(server.avoid))
+            self.no_special = self.no_special or server.no_special
+            self.no_regular = self.no_regular or server.no_regular
 
     def __len__(self: "SchedulingUnit") -> int:
         """Get the number of minis in this scheduling unit.

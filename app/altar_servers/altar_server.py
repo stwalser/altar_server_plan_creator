@@ -21,6 +21,8 @@ class AltarServer(BaseModel):
     vacations: list[Vacation] = []
     locations: list[str] = []
     services: list = []
+    no_special: bool = False
+    no_regular: bool = False
 
     def is_available(self: "AltarServer", date: datetime.date) -> bool:
         """See if a server is available at a certain date due to vacations.
