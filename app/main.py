@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+logger = logging.getLogger("root")
+
 from altar_servers.altar_servers import AltarServers, get_distribution
 from altar_servers.queue_manager import QueueManager
 from altar_servers.server_handler import assign_servers
@@ -17,14 +19,12 @@ from tqdm import tqdm
 from utils.latex_handler import generate_pdf
 
 TOTAL_OPTIMIZE_ROUNDS = 5000
-PROGRAM_NAME = "Mini-Plan Ersteller"
-logger = logging.getLogger(PROGRAM_NAME)
 
 
 def main() -> None:
     """Load the config files and call the individual steps."""
     logging.basicConfig(level=logging.INFO, stream=sys.stdout, format="%(levelname)s - %(message)s")
-    logger.info("Willkommen beim %s", PROGRAM_NAME)
+    logger.info("Willkommen beim Mini-Plan-Ersteller")
 
     if Path.exists(Path("output/plan.tex")):
         logger.info("Plan existiert bereits. Kompilere erneut ...")

@@ -1,5 +1,7 @@
 """A module that contains the functionality of assigning servers to masses."""
 
+import logging
+
 from altar_servers.altar_servers import AltarServers
 from altar_servers.queue_manager import QueueManager
 from altar_servers.scheduling_unit import SchedulingUnit
@@ -7,6 +9,8 @@ from dates.calendar import Calendar
 from dates.day import Day
 from dates.holy_mass import HolyMass
 from utils.exceptions import BadSituationError
+
+logger = logging.getLogger("root")
 
 
 def assign_servers(
@@ -40,14 +44,16 @@ def _pre_assign(mass: HolyMass, day: Day, altar_servers: AltarServers) -> int:
                             altar_servers.assign_scheduling_unit(SchedulingUnit([server]), mass)
                             assigned += 1
                         except KeyError:
+                            logger.warning(f"Server {name} not found.")
                             continue
         else:
-            for item in mass.event.servers:
+            for name in mass.event.servers:
                 try:
-                    server = altar_servers.get_server_by_name(item)
+                    server = altar_servers.get_server_by_name(name)
                     altar_servers.assign_scheduling_unit(SchedulingUnit([server]), mass)
                     assigned += 1
                 except KeyError:
+                    logger.warning(f"Server {name} not found.")
                     continue
     return assigned
 
