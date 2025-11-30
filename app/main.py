@@ -29,7 +29,6 @@ def main() -> None:
     if Path.exists(Path("output/plan.tex")):
         logger.info("Plan existiert bereits. Kompilere erneut ...")
         try:
-            # ruff: noqa: S603
             subprocess.run(
                 [
                     "/usr/bin/pdflatex",
