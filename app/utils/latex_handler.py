@@ -57,7 +57,7 @@ class Plan(Document):
 
 
 def generate_pdf(
-    days: list, start_date: datetime.date, end_date: datetime.date, welcome_text: WelcomeText
+        days: list, start_date: datetime.date, end_date: datetime.date, welcome_text: WelcomeText
 ) -> None:
     """Generate a PDF of the plan.
 
@@ -109,6 +109,7 @@ def fill_document(table: Tabular, calendar: Calendar) -> None:
             for altar_server in mass.servers:
                 table_row += (altar_server,)
                 table_row = conditional_write(table, table_row)
+            conditional_write(table, table_row, final=True)
 
         conditional_hline_end(day, table)
         table.add_empty_row()
@@ -135,9 +136,10 @@ def conditional_hline_end(day: Day, table: Tabular) -> None:
         table.add_hline()
 
 
-def conditional_write(table: Tabular, table_row: tuple) -> tuple:
+def conditional_write(table: Tabular, table_row: tuple, final: bool = False) -> tuple:
     """Write a complete row to the tabular object.
 
+    :param final: Indicates if the row is the last row of the mass and should be written no matter the length.
     :param table: The tabular object.
     :param table_row: The row to write.
     :return: A new row, if the row was written or, otherwise, the same row.
@@ -145,4 +147,7 @@ def conditional_write(table: Tabular, table_row: tuple) -> tuple:
     if len(table_row) == TABLE_WIDTH:
         table.add_row(table_row)
         table_row = ("", "")
+    elif len(table_row) == TABLE_WIDTH - 1 and final:
+        table_row += ("",)
+        table.add_row(table_row)
     return table_row
