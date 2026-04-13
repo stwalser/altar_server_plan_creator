@@ -10,7 +10,7 @@ dependencies = [
     "pydantic-core>=2.33.1",
     "pylatex>=1.4.2",
     "python-dateutil>=2.9.0.post0",
-    "ruff>=0.11.4",
+    "ruff>=0.15.10",
     "tqdm>=4.67.1",
 ]
 
