@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "babel>=2.17.0",
-    "pydantic>=2.13.0",
+    "pydantic>=2.13.3",
     "pydantic-core>=2.33.1",
     "pylatex>=1.4.2",
     "python-dateutil>=2.9.0.post0",
