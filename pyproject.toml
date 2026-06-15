@@ -11,7 +11,7 @@ dependencies = [
     "pylatex>=1.4.2",
     "python-dateutil>=2.9.0.post0",
     "ruff>=0.15.16",
-    "tqdm>=4.68.1",
+    "tqdm>=4.68.2",
 ]
 
 [tool.ruff]
